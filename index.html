@@ -336,6 +336,35 @@
         <textarea id="addNotes" rows="4"></textarea>
       </section>
 
+      
+      <!-- AUTO BOM -->
+      <section class="card" id="bomCard">
+        <h2>7. Automatic Bill of Materials (BoM)</h2>
+        <p class="note">Generated from what you filled above. Adjust quantities if needed, then export PDF. Pricing is not included — commercial terms come from your Securiti quote.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem" class="no-print">
+          <button type="button" class="btn btn-white" style="background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff" onclick="generateBOM()">Generate / Refresh BoM</button>
+          <button type="button" class="btn btn-ghost" style="background:#fff;color:var(--blue-dark);border:1px solid var(--border)" onclick="window.print()">Export PDF (includes BoM)</button>
+        </div>
+        <div id="bomSummary" class="note" style="display:none"></div>
+        <div style="overflow-x:auto">
+          <table class="inv" id="bomTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Product Name</th>
+                <th>Product Description</th>
+                <th>Qty</th>
+                <th>Basis (from workbook)</th>
+              </tr>
+            </thead>
+            <tbody id="bomBody">
+              <tr><td colspan="5" style="color:var(--muted);padding:0.75rem">Click <strong>Generate / Refresh BoM</strong> after filling the form.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note" style="margin-top:0.75rem" id="bomFoot">BoM uses standard packaging patterns (e.g. DUM per 100 TB, Consent per 100K MAU, Robotic DSR per 1–100 systems). Validate with Securiti AE/SE before quoting.</p>
+      </section>
+
       <div class="note" style="text-align:center">
         Thank you for completing this workbook.<br />
         Please export PDF and return the completed document to your <strong>Securiti.ai</strong> account team.
@@ -520,6 +549,233 @@
       });
       addMsg('Hi — ask about any field in this workbook. I will explain options with examples (stages, TB sizing, consent MAU, ROT, DSPM, deployment, regulations, PDF export).', 'bot');
     })();
+  </script>
+
+
+  <script>
+    function ceilDiv(a, b) { a = Number(a)||0; b = Number(b)||1; return a <= 0 ? 0 : Math.ceil(a / b); }
+    function val(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+    function num(id) { return parseFloat(val(id)) || 0; }
+    function checked(name) {
+      return Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(x => x.value);
+    }
+    function anyPriv(labels) {
+      const c = checked('priv');
+      return labels.some(l => c.includes(l));
+    }
+    function anyDi(labels) {
+      const c = checked('di');
+      return labels.some(l => c.includes(l));
+    }
+    function anyDspm(labels) {
+      const c = checked('dspm');
+      return labels.some(l => c.includes(l));
+    }
+
+    function generateBOM() {
+      const lines = [];
+      const structTB = num('scanStruct') || num('structTB');
+      const unstructTB = num('scanUnstruct') || num('unstructTB');
+      const cookieMAU = num('cookieMAU');
+      const univMAU = num('univMAU');
+      const mobileMAU = num('mobileMAU');
+      const systems = num('numSystems') || num('wfSystems') || 0;
+      const noticeYes = (document.querySelector('input[name=notice]:checked') || {}).value === 'Yes';
+
+      // DUM — if volumes or DI discovery selected
+      const wantDiscovery = anyDi(['Sensitive Data Discovery','Data Classification','Enterprise Data Inventory','ROT Data Identification','Data Command Center'])
+        || anyDspm(['Cloud Data Security Posture','Public Storage Exposure','Excessive Permissions','Data Access Intelligence','AI Security Posture'])
+        || structTB > 0 || unstructTB > 0;
+
+      if (wantDiscovery && structTB > 0) {
+        const q = Math.max(1, ceilDiv(structTB, 100));
+        lines.push({
+          name: 'Data Under Management — Enterprise (Structured)',
+          desc: 'Complete scanning and deep visibility into sensitive structured data across on-premises, hybrid, and multi-cloud environments. 1 unit covers up to 100 TB structured.',
+          qty: q,
+          basis: structTB + ' TB structured → ' + q + ' × 100 TB unit(s)'
+        });
+      }
+      if (wantDiscovery && unstructTB > 0) {
+        const q = Math.max(1, ceilDiv(unstructTB, 100));
+        lines.push({
+          name: 'Data Under Management — Enterprise (Unstructured)',
+          desc: 'Complete scanning and deep visibility into sensitive unstructured data across on-premises, hybrid, and multi-cloud. 1 unit covers up to 100 TB unstructured.',
+          qty: q,
+          basis: unstructTB + ' TB unstructured → ' + q + ' × 100 TB unit(s)'
+        });
+      }
+
+      // DSPM package hint (not priced line — guidance)
+      if (anyDspm(['Cloud Data Security Posture','Public Storage Exposure','Excessive Permissions','Data Access Intelligence','AI Security Posture'])) {
+        lines.push({
+          name: 'DSPM package (Advanced / Enterprise / Enterprise Plus)',
+          desc: 'Select tier with AE: Advanced = discovery & classification; Enterprise = posture, compliance, automation; Plus = remediation. Align to Data Intelligence + DSPM ticks above.',
+          qty: 1,
+          basis: 'DSPM capabilities selected: ' + checked('dspm').join(', ')
+        });
+      }
+
+      if (anyPriv(['Workflow Automation']) || num('wfSystems') > 0) {
+        lines.push({
+          name: 'Workflow Automation',
+          desc: 'Automate privacy functions with custom workflows that trigger actions across the Securiti platform.',
+          qty: 1,
+          basis: num('wfSystems') ? (num('wfSystems') + ' data systems noted for orchestration') : 'Workflow Automation selected'
+        });
+      }
+      if (anyPriv(['Assessment Automation'])) {
+        lines.push({
+          name: 'Assessment Automation',
+          desc: 'Automate internal assessments with collaborative SME input, artifact mapping, and risk alignment — unlimited assessments in annual subscription.',
+          qty: 1,
+          basis: 'Assessment Automation selected'
+        });
+      }
+      if (anyPriv(['Data Mapping Automation (RoPA)'])) {
+        lines.push({
+          name: 'Data Mapping Automation (RoPA)',
+          desc: 'Trace, manage, and monitor unlimited data flows — visibility into data points, cross-border transfers, vendor contracts, and compliance records.',
+          qty: 1,
+          basis: 'Data Mapping / RoPA selected'
+        });
+      }
+      if (anyPriv(['DSR Portal & Workbench'])) {
+        lines.push({
+          name: 'DSR Portal and Workbench',
+          desc: 'Secure communication portal to manage DSR requests with identity verification and collaborative workbench for SMEs.',
+          qty: 1,
+          basis: 'DSR Portal & Workbench selected'
+        });
+      }
+      if (anyPriv(['Robotic DSR Fulfillment']) || systems > 0 && anyPriv(['DSR Portal & Workbench'])) {
+        const q = Math.max(1, ceilDiv(systems || num('wfSystems') || 25, 100));
+        if (anyPriv(['Robotic DSR Fulfillment']) || systems > 0) {
+          lines.push({
+            name: 'Robotic Automation for DSR Fulfillment (1–100 systems)',
+            desc: 'AI-powered DSR automation scans data systems to retrieve personal data — scalable connectors; annual subscription. 1 unit covers 1–100 systems.',
+            qty: anyPriv(['Robotic DSR Fulfillment']) ? q : q,
+            basis: (systems || num('wfSystems') || 25) + ' systems → ' + q + ' unit(s) of 1–100'
+          });
+        }
+      }
+      if (anyPriv(['Vendor Risk Management'])) {
+        lines.push({
+          name: 'Vendor Risk Management',
+          desc: 'Monitor privacy and security readiness of service providers — unlimited assessments, vendor collaboration, automated data requests, contract management.',
+          qty: 1,
+          basis: 'Vendor Risk Management selected'
+        });
+      }
+      if (anyPriv(['Data Breach Management'])) {
+        lines.push({
+          name: 'Data Breach Management',
+          desc: 'Full incident and data breach lifecycle with automated workflows for scoping, response, and global regulatory compliance (e.g. 250 workflows under annual subscription).',
+          qty: 1,
+          basis: 'Data Breach Management selected'
+        });
+      }
+      if (anyPriv(['Universal Consent Management']) || univMAU > 0) {
+        const q = Math.max(1, ceilDiv(univMAU || 100000, 100000));
+        if (anyPriv(['Universal Consent Management']) || univMAU > 0) {
+          lines.push({
+            name: 'Universal Consent Management | Enterprise',
+            desc: 'Universal consent collection and revocation across channels. No limit on website domains; pricing by monthly unique users in slabs of 100K MAU.',
+            qty: univMAU > 0 ? q : 1,
+            basis: univMAU > 0 ? (univMAU.toLocaleString() + ' MAU → ' + q + ' × 100K') : 'Universal Consent selected'
+          });
+        }
+      }
+      if (anyPriv(['Cookie Consent Management']) || cookieMAU > 0) {
+        const q = Math.max(1, ceilDiv(cookieMAU || 100000, 100000));
+        lines.push({
+          name: 'Cookie Consent Enterprise',
+          desc: 'Automate website cookie compliance with scanning, banners, and blocking. Unlimited domains; pricing by monthly unique users in slabs of 100K MAU.',
+          qty: cookieMAU > 0 ? q : 1,
+          basis: cookieMAU > 0 ? (cookieMAU.toLocaleString() + ' MAU → ' + q + ' × 100K') : 'Cookie Consent selected'
+        });
+      }
+      if (anyPriv(['Mobile Consent']) || anyPriv(['Mobile Consent Management']) || mobileMAU > 0) {
+        // checkbox value is not exactly Mobile - check list
+      }
+      // Mobile - privacy list uses Cookie/Universal/Privacy Notice; mobile field may exist
+      if (mobileMAU > 0) {
+        const q = Math.max(1, ceilDiv(mobileMAU, 100000));
+        lines.push({
+          name: 'Mobile Consent',
+          desc: 'Automate mobile consent; unlimited apps; pricing by monthly unique users in slabs of 100K MAU.',
+          qty: q,
+          basis: mobileMAU.toLocaleString() + ' MAU → ' + q + ' × 100K'
+        });
+      }
+      if (anyPriv(['Privacy Notice Management']) || noticeYes) {
+        lines.push({
+          name: 'Privacy Notice Management',
+          desc: 'Centralized privacy notice lifecycle and publishing under management.',
+          qty: 1,
+          basis: noticeYes ? 'Privacy & Notice required = Yes' : 'Privacy Notice Management selected'
+        });
+      }
+
+      // AI governance
+      const ai = checked('ai');
+      if (ai.length) {
+        lines.push({
+          name: 'AI Governance (scope)',
+          desc: 'AI discovery, security, compliance, and risk management for selected platforms.',
+          qty: 1,
+          basis: 'Selected: ' + ai.join(', ')
+        });
+      }
+
+      const tbody = document.getElementById('bomBody');
+      const sum = document.getElementById('bomSummary');
+      if (!lines.length) {
+        tbody.innerHTML = '<tr><td colspan="5" style="padding:0.75rem;color:#C62828">No BoM lines yet. Enter data volumes and/or tick capabilities in sections 3–4, then click Generate again.</td></tr>';
+        sum.style.display = 'block';
+        sum.innerHTML = '<strong>Customer:</strong> ' + (val('custName') || '—') + ' · Fill volumes or select modules to build BoM.';
+        return;
+      }
+
+      tbody.innerHTML = lines.map((L, i) =>
+        `<tr>
+          <td>${i+1}</td>
+          <td><strong>${L.name}</strong></td>
+          <td>${L.desc}</td>
+          <td><input type="number" min="1" value="${L.qty}" style="width:64px" aria-label="Qty" /></td>
+          <td style="font-size:0.7rem;color:var(--muted)">${L.basis}</td>
+        </tr>`
+      ).join('');
+
+      sum.style.display = 'block';
+      sum.innerHTML = '<strong>Customer:</strong> ' + (val('custName') || '—') +
+        ' · <strong>Industry:</strong> ' + (val('industry') || '—') +
+        ' · <strong>Country:</strong> ' + (val('country') || '—') +
+        ' · <strong>Lines:</strong> ' + lines.length +
+        ' · Structured scan TB: ' + (structTB || '—') +
+        ' · Unstructured scan TB: ' + (unstructTB || '—') +
+        '<br><em>Qty fields are editable before PDF export. Not a commercial quote.</em>';
+
+      document.getElementById('bomCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Chat knowledge for BOM
+    if (typeof KB !== 'undefined') {
+      KB.push({
+        keys: ['bom', 'bill', 'sku', 'quantity', 'qty', 'line item'],
+        a: '<strong>Automatic BoM:</strong> After filling volumes and ticking capabilities, open section <em>7. Automatic Bill of Materials</em> and click <em>Generate / Refresh BoM</em>. Quantities follow packaging rules — DUM per 100 TB, Consent per 100K MAU, Robotic DSR per 1–100 systems. Edit qty if needed, then Export PDF. This is a sizing aid, not a final quote.'
+      });
+    }
+    if (typeof QUICK !== 'undefined' && !QUICK.includes('Generate BoM?')) {
+      QUICK.push('Generate BoM?');
+      const qb = document.getElementById('quickBtns');
+      if (qb) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.textContent = 'Generate BoM?';
+        b.onclick = () => { document.getElementById('chatInput').value = 'How does BoM work?'; sendChat(); };
+        qb.appendChild(b);
+      }
+    }
   </script>
 
 </body>
