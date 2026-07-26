@@ -348,33 +348,32 @@
         <p class="note">Generated from what you filled above. Adjust quantities if needed, then export PDF. Pricing is not included — commercial terms come from your Securiti quote.</p>
 
         <h3 style="margin-top:0.5rem">DSPM packages — how it is packaged</h3>
-        <p class="note">Green = included. <strong>DSPM Advanced</strong> = discovery &amp; classification only (not Command Center, Inventory, or ROT). Those start at <strong>Enterprise</strong>.</p>
+        <p class="note">Green = included. Table matches Securiti DSPM / DUM packaging (no edits to capability names).</p>
         <div style="overflow-x:auto;margin-bottom:1rem">
           <table class="inv pkg-matrix">
             <thead>
               <tr>
-                <th>Capability</th>
+                <th>Capabilities</th>
                 <th style="text-align:center">Advanced</th>
                 <th style="text-align:center">Enterprise</th>
                 <th style="text-align:center">Enterprise Plus</th>
               </tr>
             </thead>
             <tbody>
-              <tr><td>Data Scanning and Classification (Discovery &amp; Classify)</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+              <tr><td>Data Command Center</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+              <tr><td>Data Inventory Sync</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
+              <tr><td>Data Scanning and Classification</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
               <tr><td>File Clustering Analysis</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Insights Policies (structured &amp; unstructured)</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Data Command Center</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Data Inventory Sync</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>ROT Data Identification</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
+              <tr><td>Insights Policies for structured and unstructured data</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
               <tr><td>Cloud Asset Discovery and Posture Policies</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
               <tr><td>AI Model Discovery and Posture Policies</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
               <tr><td>VM Package Discovery</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Compliance Management, Tests, and Data Risk Scoring</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Access Intelligence (Privilege and Activity Analysis)</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Automation Policies (Federated Remediation, ITSM, email)</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
-              <tr><td>Remediation Actions on Data – Quarantine, Labeling</td><td class="n">—</td><td class="n">—</td><td class="y">✓</td></tr>
+              <tr><td>Compliance Management, Tests, and Data Risk Scoring (Toxic Combinations)</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
+              <tr><td>Access Intelligence (Privilege and Activity Analysis, Over Provisioned User Identification)</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
+              <tr><td>Automation Policies (Federated Remediation through ITSM Integration and email Alerts)</td><td class="n">—</td><td class="y">✓</td><td class="y">✓</td></tr>
+              <tr><td>Remediation Actions on Data - Quarantine, Labeling</td><td class="n">—</td><td class="n">—</td><td class="y">✓</td></tr>
               <tr><td>Remediation Actions on Cloud Infrastructure and SaaS</td><td class="n">—</td><td class="n">—</td><td class="y">✓</td></tr>
-              <tr><td>Access Remediation – Control, Masking, Row Filtering</td><td class="n">—</td><td class="n">—</td><td class="y">✓</td></tr>
+              <tr><td>Access Remediation - Control, Masking, Row Filtering Policies</td><td class="n">—</td><td class="n">—</td><td class="y">✓</td></tr>
               <tr><td>Workflow Module</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
               <tr><td>Unlimited Customer Hosted Pods</td><td class="y">✓</td><td class="y">✓</td><td class="y">✓</td></tr>
             </tbody>
@@ -622,47 +621,37 @@
       const systems = num('numSystems') || num('wfSystems') || 0;
       const noticeYes = (document.querySelector('input[name=notice]:checked') || {}).value === 'Yes';
 
-      // Infer DSPM tier from capability ticks
-      // Advanced ONLY: discovery & classification (Sensitive Data Discovery, Data Classification)
-      // NOT in Advanced: Command Center, Inventory, ROT → those need Enterprise+
-      // Enterprise: Command Center, Inventory, ROT, cloud/AI posture, compliance, access, automation
-      // Plus: remediation / ROT optimization closed-loop, Workflow module packaging
+      // Infer DSPM tier from official packaging matrix (xlsx)
+      // Advanced: Command Center, Inventory, Scanning, Classification, File Clustering, Insights, Workflow, Pods
+      // Enterprise: + Cloud/AI/VM posture, Compliance, Access Intelligence, Automation Policies
+      // Plus: + Remediation on data/cloud/SaaS, Access remediation (quarantine/labeling)
       const di = checked('di');
       const dspm = checked('dspm');
       const priv = checked('priv');
       const objs = checked('obj');
       const wantDiscovery = di.length > 0 || dspm.length > 0 || structTB > 0 || unstructTB > 0;
 
-      const advancedOnly = ['Sensitive Data Discovery', 'Data Classification'];
-      const enterpriseFromDI = ['Enterprise Data Inventory', 'ROT Data Identification', 'Data Command Center'];
       const enterpriseFromDSPM = [
         'Cloud Data Security Posture', 'Public Storage Exposure', 'Excessive Permissions',
         'Data Access Intelligence', 'AI Security Posture'
       ];
-      const hasEnterpriseDI = enterpriseFromDI.some(x => di.includes(x));
-      const hasEnterpriseDSPM = enterpriseFromDSPM.some(x => dspm.includes(x));
-      const hasEnterprise = hasEnterpriseDI || hasEnterpriseDSPM;
-      const wantsRot = objs.includes('Optimize Storage / Reduce ROT Data') || di.includes('ROT Data Identification');
-      const wantsWorkflow = priv.includes('Workflow Automation');
-      const onlyAdvancedTicks = di.length > 0 && di.every(x => advancedOnly.includes(x)) && !hasEnterpriseDSPM;
+      const hasEnterprise = enterpriseFromDSPM.some(x => dspm.includes(x));
+      const wantsRotRemediation = objs.includes('Optimize Storage / Reduce ROT Data') || di.includes('ROT Data Identification');
 
       let tier = 'Advanced';
       if (hasEnterprise) tier = 'Enterprise';
-      if (hasEnterprise && wantsRot) tier = 'Enterprise Plus'; // Workflow is in all DSPM tiers — does not force Plus
-      if (onlyAdvancedTicks || (!hasEnterprise && (di.some(x => advancedOnly.includes(x)) || structTB > 0 || unstructTB > 0))) {
-        if (!hasEnterprise) tier = 'Advanced';
-      }
-      if (!hasEnterprise && (hasEnterpriseDI === false) && di.some(x => enterpriseFromDI.includes(x))) {
+      if (hasEnterprise && wantsRotRemediation) tier = 'Enterprise Plus';
+      // ROT identification alone without enterprise posture → still Advanced base features; Plus needs remediation path with enterprise
+      if (!hasEnterprise && wantsRotRemediation) {
+        // recommend Enterprise as minimum to approach ROT ops; Plus if they also want quarantine
         tier = 'Enterprise';
       }
-      if (hasEnterpriseDI && !hasEnterpriseDSPM) tier = 'Enterprise';
-      if (hasEnterprise && wantsRot) tier = 'Enterprise Plus';
 
-      if (wantDiscovery && structTB > 0) {
+if (wantDiscovery && structTB > 0) {
         const q = Math.max(1, ceilDiv(structTB, 100));
         lines.push({
           name: 'DSPM ' + tier + ' (Structured)',
-          desc: 'DSPM ' + tier + ' for structured data (Advanced = discovery & classification only; Inventory / Command Center / ROT require Enterprise+). 1 unit covers up to 100 TB structured.',
+          desc: 'DSPM ' + tier + ' for structured data (tier per official DSPM packaging matrix). 1 unit covers up to 100 TB structured.',
           qty: q,
           basis: structTB + ' TB structured → ' + q + ' × 100 TB · tier from selected features: ' + tier
         });
@@ -671,7 +660,7 @@
         const q = Math.max(1, ceilDiv(unstructTB, 100));
         lines.push({
           name: 'DSPM ' + tier + ' (Unstructured)',
-          desc: 'DSPM ' + tier + ' for unstructured data (Advanced = discovery & classification only; Inventory / Command Center / ROT require Enterprise+). 1 unit covers up to 100 TB unstructured.',
+          desc: 'DSPM ' + tier + ' for unstructured data (tier per official DSPM packaging matrix). 1 unit covers up to 100 TB unstructured.',
           qty: q,
           basis: unstructTB + ' TB unstructured → ' + q + ' × 100 TB · tier from selected features: ' + tier
         });
