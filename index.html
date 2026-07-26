@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Securiti.ai EMEA | Customer Discovery &amp; Sizing Workbook</title>
+  <style>
+    :root {
+      --blue: #0077C8; --blue-dark: #003D6B; --teal: #00B2A9; --green: #7AB800;
+      --border: #B8D4E8; --text: #1A2B3C; --muted: #5A6F7E; --input-bg: #FFF9E6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif; color: var(--text); min-height: 100vh;
+      background: #E8F4FC; background-image: linear-gradient(165deg, #D6EAF8 0%, #D5F5E3 50%, #E8F8E0 100%);
+      background-attachment: fixed;
+    }
+    #fx-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+    .page-wrap { position: relative; z-index: 1; }
+
+    .hero {
+      background: linear-gradient(120deg, #0077C8 0%, #00A3E0 38%, #00B2A9 68%, #7AB800 100%);
+      color: white; padding: 1.1rem 1.4rem; position: sticky; top: 0; z-index: 100; overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,61,107,0.28);
+    }
+    .hero::after {
+      content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='480' height='200'%3E%3Cg stroke='%23fff' stroke-opacity='0.22' fill='%23fff' fill-opacity='0.35'%3E%3Cpath d='M0 180 Q130 120 260 95 T480 35' fill='none' stroke-width='1.2'/%3E%3Ccircle cx='80' cy='155' r='2.5'/%3E%3Ccircle cx='200' cy='115' r='2'/%3E%3Ccircle cx='320' cy='80' r='3'/%3E%3C/g%3E%3C/svg%3E") right center / 45% no-repeat;
+    }
+    .hero-inner { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 0.75rem; max-width: 1100px; margin: 0 auto; }
+    .hero h1 { font-size: 1.2rem; font-weight: 700; }
+    .hero p { font-size: 0.78rem; opacity: 0.95; margin-top: 0.15rem; max-width: 560px; }
+    .btn { border: none; border-radius: 8px; padding: 0.45rem 0.95rem; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+    .btn-white { background: #fff; color: var(--blue-dark); }
+    .btn-ghost { background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.45); }
+
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 1rem 1rem 2rem; }
+    .card {
+      background: linear-gradient(165deg, rgba(255,255,255,0.97), rgba(227,242,253,0.55));
+      border: 1px solid var(--border); border-radius: 14px; padding: 1.1rem 1.25rem; margin-bottom: 1rem;
+      box-shadow: 0 3px 12px rgba(0,119,200,0.06);
+    }
+    .card h2 {
+      font-size: 1rem; color: var(--blue-dark); margin-bottom: 0.85rem; padding-bottom: 0.4rem;
+      border-bottom: 2px solid transparent; border-image: linear-gradient(90deg, var(--blue), var(--teal), var(--green)) 1;
+    }
+    .card h3 { font-size: 0.88rem; color: var(--blue); margin: 0.9rem 0 0.5rem; }
+    .note {
+      font-size: 0.75rem; color: var(--muted); background: linear-gradient(135deg, #E3F2FD, #E8F5E9);
+      border-radius: 8px; padding: 0.55rem 0.75rem; margin-bottom: 0.9rem; border: 1px solid var(--border);
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.65rem 1rem; }
+    @media (max-width: 720px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+    label.field { display: block; font-size: 0.7rem; font-weight: 600; color: var(--muted); margin-bottom: 0.15rem; }
+    input[type=text], input[type=number], input[type=date], select, textarea {
+      width: 100%; padding: 0.4rem 0.55rem; border: 1px solid var(--border); border-radius: 7px;
+      font-size: 0.82rem; background: var(--input-bg); color: #0D47A1; font-weight: 600; margin-bottom: 0.15rem;
+    }
+    textarea { min-height: 72px; resize: vertical; font-weight: 500; }
+    .chk-grid { display: flex; flex-wrap: wrap; gap: 0.35rem 0.85rem; margin: 0.35rem 0 0.6rem; }
+    .chk {
+      display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; cursor: pointer;
+      padding: 0.25rem 0.45rem; border-radius: 6px; background: rgba(255,255,255,0.7); border: 1px solid transparent;
+    }
+    .chk:hover { border-color: var(--border); background: #fff; }
+    .chk input { accent-color: var(--blue); }
+    table.inv { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 0.4rem; }
+    table.inv th {
+      text-align: left; padding: 0.4rem 0.35rem; background: linear-gradient(90deg, #E3F2FD, #E8F5E9);
+      color: var(--blue-dark); border-bottom: 2px solid var(--border); font-size: 0.68rem; white-space: nowrap;
+    }
+    table.inv td { padding: 0.25rem; border-bottom: 1px solid var(--border); }
+    table.inv input, table.inv select { margin: 0; font-size: 0.72rem; padding: 0.28rem; }
+    .radio-row { display: flex; flex-wrap: wrap; gap: 0.5rem 1rem; margin: 0.4rem 0; }
+    .radio-row label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; cursor: pointer; }
+    footer {
+      text-align: center; padding: 1rem; font-size: 0.7rem; color: #fff;
+      background: linear-gradient(120deg, #0077C8, #00B2A9, #7AB800);
+    }
+    @media print {
+      #fx-canvas, .hero-actions, .no-print { display: none !important; }
+      .hero { position: relative; box-shadow: none; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      body { background: #fff; }
+      .card { break-inside: avoid; box-shadow: none; }
+      input, textarea, select { border: 1px solid #ccc !important; background: #fff !important; color: #000 !important; }
+    }
+  
+    .chat-toggle {
+      position: fixed; bottom: 1.15rem; right: 1.15rem; width: 52px; height: 52px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--green)); color: #fff; border: none;
+      font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 16px rgba(0,119,200,0.35); z-index: 200;
+    }
+    .chat-panel {
+      position: fixed; bottom: 5.1rem; right: 1.15rem; width: 360px; max-width: calc(100vw - 2rem);
+      height: 440px; background: #fff; border: 1px solid var(--border); border-radius: 14px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.14); display: none; flex-direction: column; z-index: 200; overflow: hidden;
+    }
+    .chat-panel.open { display: flex; }
+    .chat-header {
+      background: linear-gradient(135deg, var(--blue-dark), var(--teal)); color: #fff;
+      padding: 0.7rem 0.95rem; font-weight: 600; font-size: 0.85rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .chat-header button { background: transparent; border: none; color: #fff; font-size: 1.1rem; cursor: pointer; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 0.7rem; display: flex; flex-direction: column; gap: 0.4rem; background: #F0F7FA; }
+    .msg { max-width: 92%; padding: 0.5rem 0.65rem; border-radius: 10px; font-size: 0.76rem; line-height: 1.4; }
+    .msg.bot { background: #fff; border: 1px solid var(--border); align-self: flex-start; }
+    .msg.user { background: var(--blue); color: #fff; align-self: flex-end; }
+    .msg.bot strong { color: var(--blue-dark); }
+    .quick { display: flex; flex-wrap: wrap; gap: 0.3rem; padding: 0.45rem 0.6rem; border-top: 1px solid var(--border); background: #FAFCFD; }
+    .quick button {
+      border: 1px solid var(--border); background: #fff; border-radius: 999px; padding: 0.25rem 0.55rem;
+      font-size: 0.65rem; font-weight: 600; color: var(--blue-dark); cursor: pointer;
+    }
+    .quick button:hover { background: #E3F2FD; }
+    .chat-input-row { display: flex; gap: 0.3rem; padding: 0.5rem; border-top: 1px solid var(--border); }
+    .chat-input-row input { flex: 1; margin: 0; background: #fff; }
+    .chat-input-row button {
+      background: linear-gradient(135deg, var(--blue), var(--teal)); color: #fff; border: none;
+      border-radius: 8px; padding: 0 0.8rem; font-weight: 600; cursor: pointer;
+    }
+    @media print { .chat-toggle, .chat-panel { display: none !important; } }
+
+  </style>
+</head>
+<body>
+  <canvas id="fx-canvas"></canvas>
+  <div class="page-wrap">
+    <header class="hero">
+      <div class="hero-inner">
+        <div>
+          <h1>Securiti.ai EMEA — Customer Discovery, Qualification &amp; Sizing Workbook</h1>
+          <p>Fill online · Share with account team · Export PDF for records</p>
+        </div>
+        <div class="hero-actions" style="display:flex;gap:0.4rem;flex-wrap:wrap">
+          <button type="button" class="btn btn-ghost" onclick="clearForm()">Clear</button>
+          <button type="button" class="btn btn-white" onclick="window.print()">Export PDF</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="wrap">
+      <div class="note">Instructions: Complete gray/yellow input fields. Use checkboxes where shown. Complete only sections relevant to this opportunity. Export PDF when done and return to your Securiti.ai account team.</div>
+
+      <!-- 1 -->
+      <section class="card">
+        <h2>1. Customer Information</h2>
+        <div class="grid-2">
+          <div><label class="field">Customer Name</label><input type="text" id="custName" placeholder="Legal entity / company name" /></div>
+          <div><label class="field">Industry</label><input type="text" id="industry" placeholder="Banking, Healthcare, Retail, Telco…" /></div>
+          <div><label class="field">Country</label><input type="text" id="country" placeholder="Primary country of operation" /></div>
+          <div><label class="field">Date</label><input type="date" id="date" /></div>
+          <div><label class="field">Account Executive</label><input type="text" id="ae" /></div>
+          <div><label class="field">Solution Engineer</label><input type="text" id="se" /></div>
+        </div>
+        <label class="field" style="margin-top:0.5rem">Opportunity Stage</label>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="stage" value="Discovery" /> Discovery</label>
+          <label class="chk"><input type="checkbox" name="stage" value="Demo" /> Demo</label>
+          <label class="chk"><input type="checkbox" name="stage" value="Sandbox" /> Sandbox</label>
+          <label class="chk"><input type="checkbox" name="stage" value="RFP" /> RFP</label>
+          <label class="chk"><input type="checkbox" name="stage" value="Proposal" /> Proposal</label>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="card">
+        <h2>2. Business &amp; Compliance Requirements</h2>
+        <label class="field">Applicable Regulations</label>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="reg" value="GDPR" /> GDPR</label>
+          <label class="chk"><input type="checkbox" name="reg" value="KSA PDPL" /> KSA PDPL</label>
+          <label class="chk"><input type="checkbox" name="reg" value="UAE PDPL" /> UAE PDPL</label>
+          <label class="chk"><input type="checkbox" name="reg" value="NDMO" /> NDMO</label>
+          <label class="chk"><input type="checkbox" name="reg" value="PCI DSS" /> PCI DSS</label>
+          <label class="chk"><input type="checkbox" name="reg" value="ISO 27001" /> ISO 27001</label>
+          <label class="chk"><input type="checkbox" name="reg" value="DORA" /> DORA</label>
+          <label class="chk"><input type="checkbox" name="reg" value="HIPAA" /> HIPAA</label>
+        </div>
+        <div class="grid-2">
+          <div><label class="field">Other regulations</label><input type="text" id="regOther" /></div>
+        </div>
+        <label class="field">Business Drivers — Why Securiti now?</label>
+        <textarea id="drivers" placeholder="Why is the customer looking at Securiti now?"></textarea>
+        <label class="field" style="margin-top:0.5rem">Current Challenges — Key pain points</label>
+        <textarea id="challenges"></textarea>
+        <label class="field" style="margin-top:0.5rem">Expected Business Outcomes — What success looks like</label>
+        <textarea id="outcomes"></textarea>
+      </section>
+
+      <!-- 3 -->
+      <section class="card">
+        <h2>3. Current Environment</h2>
+        <h3>3.1 Infrastructure Overview</h3>
+        <label class="field">Deployment Model</label>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="deploy" value="On-Prem" /> On-Prem</label>
+          <label class="chk"><input type="checkbox" name="deploy" value="Cloud" /> Cloud</label>
+          <label class="chk"><input type="checkbox" name="deploy" value="Hybrid" /> Hybrid</label>
+        </div>
+        <label class="field">Cloud Provider(s)</label>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="cloud" value="Azure" /> Azure</label>
+          <label class="chk"><input type="checkbox" name="cloud" value="AWS" /> AWS</label>
+          <label class="chk"><input type="checkbox" name="cloud" value="GCP" /> GCP</label>
+          <label class="chk"><input type="checkbox" name="cloud" value="OCI" /> OCI</label>
+          <label class="chk"><input type="checkbox" name="cloud" value="Other" /> Other</label>
+        </div>
+        <div class="grid-3">
+          <div><label class="field">Number of Employees</label><input type="number" id="employees" /></div>
+          <div><label class="field">Microsoft 365 Users</label><input type="number" id="m365" /></div>
+          <div><label class="field">Number of Data Systems</label><input type="number" id="numSystems" /></div>
+          <div><label class="field">Structured Data (TB)</label><input type="number" id="structTB" /></div>
+          <div><label class="field">Unstructured Data (TB)</label><input type="number" id="unstructTB" /></div>
+        </div>
+
+        <h3>3.2 Data Systems Inventory</h3>
+        <p class="note" style="margin-bottom:0.4rem">Examples: Oracle DB, SQL Server, Snowflake, SharePoint, Salesforce, SAP HANA, S3, Azure Blob, Databricks, PostgreSQL, MongoDB, ServiceNow…</p>
+        <div style="overflow-x:auto">
+          <table class="inv" id="sysTable">
+            <thead>
+              <tr>
+                <th>#</th><th>Data System Name</th><th>Software / OEM</th><th>Version</th><th>Deployment</th><th>Data Type</th><th>Struct / Unstruct</th><th>Vol (TB)</th><th>Scan?</th>
+              </tr>
+            </thead>
+            <tbody id="sysBody"></tbody>
+          </table>
+        </div>
+        <button type="button" class="btn btn-ghost no-print" style="margin-top:0.5rem;background:var(--blue);color:#fff;border:none" onclick="addSysRow()">+ Add row</button>
+
+        <h3>3.3 Data Volume to be Scanned</h3>
+        <div class="grid-2">
+          <div><label class="field">Structured Data (TB)</label><input type="number" id="scanStruct" placeholder="e.g. 100" /></div>
+          <div><label class="field">Unstructured Data (TB)</label><input type="number" id="scanUnstruct" placeholder="e.g. 100" /></div>
+        </div>
+
+        <h3>3.4 Cookie, Universal &amp; Mobile Consent</h3>
+        <div class="grid-3">
+          <div><label class="field">Cookie Consent MAU (per 100K)</label><input type="number" id="cookieMAU" placeholder="Monthly Active Unique Users" /></div>
+          <div><label class="field">Universal Consent MAU (per 100K)</label><input type="number" id="univMAU" /></div>
+          <div><label class="field">Mobile Consent MAU (per 100K)</label><input type="number" id="mobileMAU" /></div>
+        </div>
+        <label class="field">Privacy &amp; Notice Management Required</label>
+        <div class="radio-row">
+          <label><input type="radio" name="notice" value="Yes" /> Yes</label>
+          <label><input type="radio" name="notice" value="No" /> No</label>
+        </div>
+        <div class="grid-2">
+          <div><label class="field">Workflow Orchestration — Number of Data Systems</label><input type="number" id="wfSystems" placeholder="e.g. 25" /></div>
+        </div>
+
+        <h3>3.5 Data Centers</h3>
+        <div class="grid-3">
+          <div><label class="field">Production (DC) — Location / Count</label><input type="text" id="dcProd" /></div>
+          <div><label class="field">Disaster Recovery (DR)</label><input type="text" id="dcDR" /></div>
+          <div><label class="field">Test / Non-Prod</label><input type="text" id="dcTest" /></div>
+        </div>
+
+        <h3>3.6 Deployment Option (Select One)</h3>
+        <div class="radio-row" style="flex-direction:column;align-items:flex-start;gap:0.45rem">
+          <label><input type="radio" name="depOpt" value="AWS Hybrid" /> <strong>AWS Hybrid</strong> — Management Console in AWS; Pods / Collectors / Sensors / Gateway at customer DC</label>
+          <label><input type="radio" name="depOpt" value="Fully Cloud (SaaS)" /> <strong>Fully Cloud (SaaS)</strong></label>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section class="card">
+        <h2>4. Business Requirements — Capabilities of Interest</h2>
+        <h3>4.1 Data Intelligence</h3>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="di" value="Sensitive Data Discovery" /> Sensitive Data Discovery</label>
+          <label class="chk"><input type="checkbox" name="di" value="Data Classification" /> Data Classification</label>
+          <label class="chk"><input type="checkbox" name="di" value="Enterprise Data Inventory" /> Enterprise Data Inventory</label>
+          <label class="chk"><input type="checkbox" name="di" value="ROT Data Identification" /> ROT Data Identification</label>
+          <label class="chk"><input type="checkbox" name="di" value="Data Command Center" /> Data Command Center</label>
+        </div>
+        <h3>4.2 DSPM</h3>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="dspm" value="Cloud Data Security Posture" /> Cloud Data Security Posture</label>
+          <label class="chk"><input type="checkbox" name="dspm" value="Public Storage Exposure" /> Public Storage Exposure</label>
+          <label class="chk"><input type="checkbox" name="dspm" value="Excessive Permissions" /> Excessive Permissions</label>
+          <label class="chk"><input type="checkbox" name="dspm" value="Data Access Intelligence" /> Data Access Intelligence</label>
+          <label class="chk"><input type="checkbox" name="dspm" value="AI Security Posture" /> AI Security Posture</label>
+        </div>
+        <h3>4.3 Privacy Automation</h3>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="priv" value="Workflow Automation" /> Workflow Automation</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Assessment Automation" /> Assessment Automation</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Vendor Risk Management" /> Vendor Risk Management</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Data Mapping Automation (RoPA)" /> Data Mapping (RoPA)</label>
+          <label class="chk"><input type="checkbox" name="priv" value="DSR Portal & Workbench" /> DSR Portal &amp; Workbench</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Robotic DSR Fulfillment" /> Robotic DSR Fulfillment</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Data Breach Management" /> Data Breach Management</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Cookie Consent Management" /> Cookie Consent</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Universal Consent Management" /> Universal Consent</label>
+          <label class="chk"><input type="checkbox" name="priv" value="Privacy Notice Management" /> Privacy Notice Management</label>
+        </div>
+        <h3>4.4 AI Governance</h3>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="ai" value="AI Discovery" /> AI Discovery</label>
+          <label class="chk"><input type="checkbox" name="ai" value="AI Security" /> AI Security</label>
+          <label class="chk"><input type="checkbox" name="ai" value="AI Compliance" /> AI Compliance</label>
+          <label class="chk"><input type="checkbox" name="ai" value="AI Risk Management" /> AI Risk Management</label>
+          <label class="chk"><input type="checkbox" name="ai" value="Microsoft Copilot" /> Microsoft Copilot</label>
+          <label class="chk"><input type="checkbox" name="ai" value="OpenAI" /> OpenAI</label>
+          <label class="chk"><input type="checkbox" name="ai" value="Gemini" /> Gemini</label>
+          <label class="chk"><input type="checkbox" name="ai" value="Claude" /> Claude</label>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="card">
+        <h2>5. Project Objectives</h2>
+        <div class="chk-grid">
+          <label class="chk"><input type="checkbox" name="obj" value="Meet Regulatory Compliance" /> Meet Regulatory Compliance</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Reduce Business Risk" /> Reduce Business Risk</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Improve Data Visibility" /> Improve Data Visibility</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Implement Data Classification" /> Implement Data Classification</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Secure Cloud Data" /> Secure Cloud Data</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Automate Privacy Operations" /> Automate Privacy Operations</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Implement AI Governance" /> Implement AI Governance</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Improve Audit Readiness" /> Improve Audit Readiness</label>
+          <label class="chk"><input type="checkbox" name="obj" value="Optimize Storage / Reduce ROT Data" /> Optimize Storage / Reduce ROT Data</label>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="card">
+        <h2>6. Additional Information</h2>
+        <label class="field">Current Challenges</label>
+        <textarea id="addChallenges" rows="4"></textarea>
+        <label class="field" style="margin-top:0.5rem">Expected Outcomes</label>
+        <textarea id="addOutcomes" rows="4"></textarea>
+        <label class="field" style="margin-top:0.5rem">Additional Notes</label>
+        <textarea id="addNotes" rows="4"></textarea>
+      </section>
+
+      <div class="note" style="text-align:center">
+        Thank you for completing this workbook.<br />
+        Please export PDF and return the completed document to your <strong>Securiti.ai</strong> account team.
+      </div>
+      <div style="text-align:center;margin:0.75rem 0 1.5rem" class="no-print">
+        <button type="button" class="btn btn-white" style="background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:0.65rem 1.5rem;font-size:0.9rem" onclick="window.print()">Export / Print PDF</button>
+      </div>
+    </div>
+
+    <footer>Securiti.ai EMEA · Customer Discovery, Qualification &amp; Sizing · Online workbook · Export PDF for account team</footer>
+
+  <button type="button" class="chat-toggle" onclick="toggleChat()" title="Ask the assistant">💬</button>
+  <div class="chat-panel" id="chatPanel">
+    <div class="chat-header">
+      <span>Discovery Workbook Assistant</span>
+      <button type="button" onclick="toggleChat()" aria-label="Close">×</button>
+    </div>
+    <div class="chat-messages" id="chatMessages"></div>
+    <div class="quick" id="quickBtns"></div>
+    <div class="chat-input-row">
+      <input id="chatInput" type="text" placeholder="Ask about any field, stage, consent…" onkeydown="if(event.key==='Enter')sendChat()" />
+      <button type="button" onclick="sendChat()">Send</button>
+    </div>
+  </div>
+
+  </div>
+
+  <script>
+    function addSysRow(prefill) {
+      const tbody = document.getElementById('sysBody');
+      const n = tbody.rows.length + 1;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${n}</td>
+        <td><input type="text" data-f="name" placeholder="System name" /></td>
+        <td><input type="text" data-f="oem" placeholder="OEM" /></td>
+        <td><input type="text" data-f="ver" placeholder="Version" /></td>
+        <td><select data-f="dep"><option value="">—</option><option>On-prem</option><option>Cloud</option><option>Hybrid</option></select></td>
+        <td><select data-f="dtype"><option value="">—</option><option>Database</option><option>File Share</option><option>SaaS</option><option>Cloud Storage</option><option>Data Lake</option></select></td>
+        <td><select data-f="su"><option value="">—</option><option>Structured</option><option>Unstructured</option></select></td>
+        <td><input type="number" data-f="vol" style="width:70px" placeholder="TB" /></td>
+        <td><select data-f="scan"><option value="">—</option><option>Yes</option><option>No</option></select></td>`;
+      tbody.appendChild(tr);
+    }
+    for (let i = 0; i < 8; i++) addSysRow();
+
+    function clearForm() {
+      if (!confirm('Clear all fields?')) return;
+      document.querySelectorAll('input[type=text], input[type=number], input[type=date], textarea').forEach(el => el.value = '');
+      document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => el.checked = false);
+      document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+      document.getElementById('sysBody').innerHTML = '';
+      for (let i = 0; i < 8; i++) addSysRow();
+    }
+
+    // Particle matrix (same family as ROI dashboard)
+    (function() {
+      const canvas = document.getElementById('fx-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let w, h, mouse = { x: -999, y: -999 }, particles = [];
+      const COLORS = ['rgba(0,119,200,0.5)', 'rgba(0,178,169,0.45)', 'rgba(122,184,0,0.4)', 'rgba(0,163,224,0.45)'];
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        particles = [];
+        const n = Math.min(85, Math.floor((w * h) / 18000));
+        for (let i = 0; i < n; i++) {
+          particles.push({
+            x: Math.random() * w, y: Math.random() * h,
+            vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
+            r: Math.random() * 2.2 + 0.6, c: COLORS[i % COLORS.length]
+          });
+        }
+      }
+      window.addEventListener('resize', resize);
+      window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+      function draw() {
+        ctx.clearRect(0, 0, w, h);
+        for (const p of particles) {
+          const dx = mouse.x - p.x, dy = mouse.y - p.y, dist = Math.sqrt(dx*dx+dy*dy)||1;
+          if (dist < 160) { p.vx += dx/dist*0.02; p.vy += dy/dist*0.02; }
+          p.vx *= 0.99; p.vy *= 0.99;
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fillStyle = p.c; ctx.fill();
+        }
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i+1; j < particles.length; j++) {
+            const a = particles[i], b = particles[j];
+            const d = Math.hypot(a.x-b.x, a.y-b.y);
+            if (d < 110) {
+              ctx.strokeStyle = 'rgba(0,119,200,' + (0.12*(1-d/110)) + ')';
+              ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+            }
+          }
+        }
+        if (mouse.x > 0) {
+          const rg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 90);
+          rg.addColorStop(0, 'rgba(0,178,169,0.12)'); rg.addColorStop(1, 'rgba(0,178,169,0)');
+          ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(mouse.x, mouse.y, 90, 0, Math.PI*2); ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      resize(); draw();
+    })();
+  </script>
+
+  <script>
+    const QUICK = [
+      'Opportunity stage?',
+      'How to size data TB?',
+      'Cookie / Consent MAU?',
+      'What is ROT?',
+      'DSPM vs Privacy?',
+      'Deployment options?',
+      'How to export PDF?'
+    ];
+    const KB = [
+      { keys: ['stage', 'opportunity', 'discovery', 'demo', 'rfp', 'proposal', 'sandbox'],
+        a: '<strong>Opportunity Stage — options:</strong><br>• <em>Discovery</em> — early qualification, still learning needs<br>• <em>Demo</em> — product demonstration planned or done<br>• <em>Sandbox</em> — customer testing in a trial environment<br>• <em>RFP</em> — formal request for proposal<br>• <em>Proposal</em> — commercial proposal in progress<br>Example: Telco still mapping data systems → tick <em>Discovery</em>.' },
+      { keys: ['tb', 'volume', 'structured', 'unstructured', 'size', 'sizing', 'scan'],
+        a: '<strong>Data volume (TB):</strong><br>• <em>Structured</em> — databases, warehouses (Oracle, Snowflake, SQL…)<br>• <em>Unstructured</em> — files, SharePoint, S3, email, lakes<br>Enter total estate and what you plan to scan. Example: 100 TB structured + 250 TB unstructured; scan may be a subset. Licensing is often on volume <em>in scope</em>, not only what you scan.' },
+      { keys: ['cookie', 'consent', 'mau', 'universal', 'mobile', 'notice'],
+        a: '<strong>Consent & Notice:</strong><br>• <em>Cookie Consent</em> — website banners; size by Monthly Active Unique Users (MAU), often in slabs of 100K<br>• <em>Universal Consent</em> — preferences across channels<br>• <em>Mobile Consent</em> — apps; also MAU-based<br>• <em>Privacy Notice</em> — Yes if you need centralized notice lifecycle<br>Example: 1,000,000 website MAU → 10 × 100K cookie units.' },
+      { keys: ['rot', 'storage', 'redundant', 'orphan'],
+        a: '<strong>ROT data:</strong> Redundant, Obsolete, or Trivial data that still costs cloud/storage. Tick “ROT Data Identification” under Data Intelligence and “Optimize Storage / Reduce ROT” under objectives if this is a driver. Example: old SharePoint sites and unused S3 buckets still billed by AWS.' },
+      { keys: ['dspm', 'posture', 'privacy', 'intelligence', 'capability'],
+        a: '<strong>Capability groups:</strong><br>• <em>Data Intelligence</em> — find, classify, inventory, ROT, command center<br>• <em>DSPM</em> — cloud posture, exposure, permissions, access, AI posture<br>• <em>Privacy Automation</em> — DSR, RoPA, assessments, vendor, breach, consent, notices, workflows<br>• <em>AI Governance</em> — Copilot, OpenAI, Gemini, Claude risk/compliance<br>Tick only what the customer cares about for this deal.' },
+      { keys: ['deploy', 'hybrid', 'saas', 'aws', 'pod', 'cloud'],
+        a: '<strong>Deployment option (pick one):</strong><br>• <em>AWS Hybrid</em> — Securiti console in AWS; collectors/pods/sensors/gateway in the customer data center (common for regulated / on-prem data)<br>• <em>Fully Cloud (SaaS)</em> — no on-prem pods<br>Also tick On-Prem / Cloud / Hybrid under infrastructure and Azure/AWS/GCP/OCI as used.' },
+      { keys: ['pdf', 'export', 'print', 'save'],
+        a: '<strong>Export PDF:</strong> Click <em>Export PDF</em> in the header (or bottom). In the print dialog choose <em>Save as PDF</em> / <em>Microsoft Print to PDF</em>. Then email the file to your Securiti account team.' },
+      { keys: ['regulation', 'gdpr', 'pdpl', 'dora', 'hipaa', 'compliance'],
+        a: '<strong>Regulations — common options:</strong> GDPR (EU), KSA PDPL, UAE PDPL, NDMO, PCI DSS, ISO 27001, DORA (EU financial), HIPAA (health). Add others in “Other regulations”. Example: EU bank → GDPR + DORA + ISO 27001.' },
+      { keys: ['system', 'inventory', 'oracle', 'sharepoint', 'snowflake'],
+        a: '<strong>Data systems inventory:</strong> List systems to assess — name, OEM, version, on-prem/cloud/hybrid, type (DB, file, SaaS, storage, lake), structured/unstructured, volume TB, scan Yes/No. Examples: Oracle 19c on-prem 40 TB structured; SharePoint Online 15 TB unstructured; Snowflake on AWS 25 TB.' },
+      { keys: ['objective', 'outcome', 'driver', 'why'],
+        a: '<strong>Objectives / drivers examples:</strong> Meet regulatory compliance; reduce breach risk; improve data visibility; classify sensitive data; secure cloud; automate DSRs; AI governance for Copilot; audit readiness; cut storage cost via ROT. Write “why now” in Business Drivers in plain language.' },
+      { keys: ['how', 'fill', 'use', 'help', 'start'],
+        a: '<strong>How to use this workbook:</strong><br>1) Customer info & stage<br>2) Regulations & why Securiti<br>3) Environment, volumes, systems, consent, deployment<br>4) Tick capabilities of interest<br>5) Project objectives<br>6) Extra notes<br>Then <em>Export PDF</em>. Ask me about any field for examples.' }
+    ];
+
+    function toggleChat() {
+      document.getElementById('chatPanel').classList.toggle('open');
+    }
+    function addMsg(html, who) {
+      const d = document.createElement('div');
+      d.className = 'msg ' + who;
+      d.innerHTML = html;
+      const box = document.getElementById('chatMessages');
+      box.appendChild(d);
+      box.scrollTop = 1e9;
+    }
+    function answer(q) {
+      const low = q.toLowerCase();
+      for (const k of KB) {
+        if (k.keys.some(x => low.includes(x))) return k.a;
+      }
+      return 'I can explain <strong>opportunity stages</strong>, <strong>TB sizing</strong>, <strong>consent MAU</strong>, <strong>ROT</strong>, <strong>DSPM vs Privacy</strong>, <strong>deployment (Hybrid/SaaS)</strong>, <strong>regulations</strong>, <strong>systems inventory</strong>, or <strong>PDF export</strong>. Try a quick button below or rephrase your question.';
+    }
+    function sendChat() {
+      const inp = document.getElementById('chatInput');
+      const q = inp.value.trim();
+      if (!q) return;
+      addMsg(q.replace(/</g,'&lt;'), 'user');
+      inp.value = '';
+      setTimeout(() => addMsg(answer(q), 'bot'), 280);
+    }
+    function sendQuick(t) {
+      document.getElementById('chatInput').value = t;
+      sendChat();
+    }
+    (function initChat() {
+      const qb = document.getElementById('quickBtns');
+      if (qb) QUICK.forEach(t => {
+        const b = document.createElement('button');
+        b.type = 'button'; b.textContent = t;
+        b.onclick = () => sendQuick(t);
+        qb.appendChild(b);
+      });
+      addMsg('Hi — ask about any field in this workbook. I will explain options with examples (stages, TB sizing, consent MAU, ROT, DSPM, deployment, regulations, PDF export).', 'bot');
+    })();
+  </script>
+
+</body>
+</html>
