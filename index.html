@@ -148,6 +148,13 @@
     <div class="wrap">
       <div class="note">Instructions: Complete gray/yellow input fields. Use checkboxes where shown. Complete only sections relevant to this opportunity. Export PDF when done and return to your Securiti.ai account team.</div>
 
+      <div class="note" id="licensingFaq">
+        <strong>Licensing FAQ — Data volume:</strong> The price points are <em>not</em> based on the volume of scanned data.
+        If the customer has 60 TB in SharePoint, even if they only scan a small percentage of that data, we are charging for 60 TB
+        and the customer can scan as much or little as they want.
+      </div>
+
+
       <!-- 1 -->
       <section class="card">
         <h2>1. Customer Information</h2>
@@ -177,12 +184,7 @@
           <label class="chk"><input type="checkbox" name="reg" value="GDPR" /> GDPR</label>
           <label class="chk"><input type="checkbox" name="reg" value="KSA PDPL" /> KSA PDPL</label>
           <label class="chk"><input type="checkbox" name="reg" value="UAE PDPL" /> UAE PDPL</label>
-          <label class="chk"><input type="checkbox" name="reg" value="NDMO" /> NDMO</label>
-          <label class="chk"><input type="checkbox" name="reg" value="PCI DSS" /> PCI DSS</label>
-          <label class="chk"><input type="checkbox" name="reg" value="ISO 27001" /> ISO 27001</label>
-          <label class="chk"><input type="checkbox" name="reg" value="DORA" /> DORA</label>
-          <label class="chk"><input type="checkbox" name="reg" value="HIPAA" /> HIPAA</label>
-        </div>
+          </div>
         <div class="grid-2">
           <div><label class="field">Other regulations</label><input type="text" id="regOther" /></div>
         </div>
@@ -221,7 +223,13 @@
         </div>
 
         <h3>3.2 Data Systems Inventory</h3>
-        <p class="note" style="margin-bottom:0.4rem">Examples: Oracle DB, SQL Server, Snowflake, SharePoint, Salesforce, SAP HANA, S3, Azure Blob, Databricks, PostgreSQL, MongoDB, ServiceNow…</p>
+        <p class="note" style="margin-bottom:0.4rem">
+          <strong>Examples</strong><br>
+          • <em>Data Systems:</em> Oracle DB, Microsoft SQL Server, Snowflake, SharePoint, Salesforce, SAP HANA, IBM Db2, Amazon S3, Azure Blob Storage, Google Cloud Storage, Databricks, PostgreSQL, MySQL, MongoDB, ServiceNow<br>
+          • <em>Software / OEM:</em> Oracle, Microsoft, SAP, IBM, AWS, Google Cloud, Salesforce, Snowflake, Databricks<br>
+          • <em>Deployment:</em> On-prem, Cloud, Hybrid<br>
+          • <em>Data Types:</em> Database, File Share, SaaS, Cloud Storage, Data Lake
+        </p>
         <div style="overflow-x:auto">
           <table class="inv" id="sysTable">
             <thead>
@@ -235,6 +243,8 @@
         <button type="button" class="btn btn-ghost no-print" style="margin-top:0.5rem;background:var(--blue);color:#fff;border:none" onclick="addSysRow()">+ Add row</button>
 
         <h3>3.3 Data Volume to be Scanned</h3>
+        <p class="note"><strong>FAQ:</strong> Pricing is on data volume <em>in scope</em> (e.g. 60 TB SharePoint = 60 TB charged), not on how much is scanned. Customer may scan any percentage of licensed volume.</p>
+
         <div class="grid-2">
           <div><label class="field">Structured Data (TB)</label><input type="number" id="scanStruct" placeholder="e.g. 100" /></div>
           <div><label class="field">Unstructured Data (TB)</label><input type="number" id="scanUnstruct" placeholder="e.g. 100" /></div>
@@ -438,8 +448,8 @@
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${n}</td>
-        <td><input type="text" data-f="name" placeholder="System name" /></td>
-        <td><input type="text" data-f="oem" placeholder="OEM" /></td>
+        <td><input type="text" data-f="name" placeholder="e.g. SharePoint" /></td>
+        <td><input type="text" data-f="oem" placeholder="e.g. Microsoft" /></td>
         <td><input type="text" data-f="ver" placeholder="Version" /></td>
         <td><select data-f="dep"><option value="">—</option><option>On-prem</option><option>Cloud</option><option>Hybrid</option></select></td>
         <td><select data-f="dtype"><option value="">—</option><option>Database</option><option>File Share</option><option>SaaS</option><option>Cloud Storage</option><option>Data Lake</option></select></td>
@@ -448,7 +458,7 @@
         <td><select data-f="scan"><option value="">—</option><option>Yes</option><option>No</option></select></td>`;
       tbody.appendChild(tr);
     }
-    for (let i = 0; i < 8; i++) addSysRow();
+    for (let i = 0; i < 5; i++) addSysRow();
 
     function clearForm() {
       if (!confirm('Clear all fields?')) return;
@@ -456,7 +466,7 @@
       document.querySelectorAll('input[type=checkbox], input[type=radio]').forEach(el => el.checked = false);
       document.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
       document.getElementById('sysBody').innerHTML = '';
-      for (let i = 0; i < 8; i++) addSysRow();
+      for (let i = 0; i < 5; i++) addSysRow();
     }
 
     // Particle matrix (same family as ROI dashboard)
@@ -526,8 +536,8 @@
     const KB = [
       { keys: ['stage', 'opportunity', 'discovery', 'demo', 'rfp', 'proposal', 'sandbox'],
         a: '<strong>Opportunity Stage — options:</strong><br>• <em>Discovery</em> — early qualification, still learning needs<br>• <em>Demo</em> — product demonstration planned or done<br>• <em>Sandbox</em> — customer testing in a trial environment<br>• <em>RFP</em> — formal request for proposal<br>• <em>Proposal</em> — commercial proposal in progress<br>Example: Telco still mapping data systems → tick <em>Discovery</em>.' },
-      { keys: ['tb', 'volume', 'structured', 'unstructured', 'size', 'sizing', 'scan'],
-        a: '<strong>Data volume (TB):</strong><br>• <em>Structured</em> — databases, warehouses (Oracle, Snowflake, SQL…)<br>• <em>Unstructured</em> — files, SharePoint, S3, email, lakes<br>Enter total estate and what you plan to scan. Example: 100 TB structured + 250 TB unstructured; scan may be a subset. Licensing is often on volume <em>in scope</em>, not only what you scan.' },
+      { keys: ['tb', 'volume', 'structured', 'unstructured', 'size', 'sizing', 'scan', 'faq', 'price', 'licensing', 'sharepoint'],
+        a: '<strong>Licensing FAQ:</strong> Price is <em>not</em> based on scanned volume. Example: 60 TB in SharePoint → charged for 60 TB even if only a small % is scanned; customer can scan as much or little as they want.<br><br><strong>Data volume (TB):</strong><br>• <em>Structured</em> — databases, warehouses (Oracle, Snowflake, SQL…)<br>• <em>Unstructured</em> — files, SharePoint, S3, email, lakes<br>Enter total estate and what you plan to scan. Example: 100 TB structured + 250 TB unstructured; scan may be a subset. Licensing is often on volume <em>in scope</em>, not only what you scan.' },
       { keys: ['cookie', 'consent', 'mau', 'universal', 'mobile', 'notice'],
         a: '<strong>Consent & Notice:</strong><br>• <em>Cookie Consent</em> — website banners; size by Monthly Active Unique Users (MAU), often in slabs of 100K<br>• <em>Universal Consent</em> — preferences across channels<br>• <em>Mobile Consent</em> — apps; also MAU-based<br>• <em>Privacy Notice</em> — Yes if you need centralized notice lifecycle<br>Example: 1,000,000 website MAU → 10 × 100K cookie units.' },
       { keys: ['rot', 'storage', 'redundant', 'orphan'],
