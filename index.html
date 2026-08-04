@@ -937,91 +937,308 @@ function downloadBlob(blob, filename) {
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
 }
 
-/* ========== WORD (.doc via HTML that Word opens) ========== */
+/* ========== WORD (.doc) — like-for-like with website layout ========== */
 function exportWord() {
   const d = collectData();
-  const sysRows = (d.systems.length ? d.systems : [{n:1,name:'',oem:'',ver:'',dep:'',dtype:'',su:'',vol:'',scan:''}]).map(r =>
-    '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.oem)+'</td><td>'+esc(r.ver)+'</td><td>'+esc(r.dep)+'</td><td>'+esc(r.dtype)+'</td><td>'+esc(r.su)+'</td><td>'+esc(r.vol)+'</td><td>'+esc(r.scan)+'</td></tr>'
-  ).join('');
-  const bomRows = d.bom.length ? d.bom.map(r =>
-    '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.desc)+'</td><td>'+esc(r.qty)+'</td><td>'+esc(r.basis)+'</td></tr>'
-  ).join('') : '<tr><td colspan="5">No BoM generated yet — fill form and click Generate BoM on the website, or complete manually.</td></tr>';
+  const chk = (list, val) => (list && list.includes(val)) ? '☑' : '☐';
+  const chkMany = (list, vals) => vals.map(v => chk(list, v) + ' ' + v).join('&nbsp;&nbsp;&nbsp;');
+  const radio = (cur, val) => (cur === val) ? '☑' : '☐';
 
-  const htmlDoc = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8">
-<title>Securiti Discovery Workbook</title>
-<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+  // Systems rows — always show at least 5 like the site
+  let sysRows = '';
+  const sysData = d.systems.length ? d.systems : [];
+  const sysCount = Math.max(5, sysData.length);
+  for (let i = 0; i < sysCount; i++) {
+    const r = sysData[i] || { n: i+1, name:'', oem:'', ver:'', dep:'', dtype:'', su:'', vol:'', scan:'' };
+    sysRows += `<tr>
+      <td style="text-align:center">${i+1}</td>
+      <td class="in">${esc(r.name)}</td>
+      <td class="in">${esc(r.oem)}</td>
+      <td class="in">${esc(r.ver)}</td>
+      <td class="in">${esc(r.dep)}</td>
+      <td class="in">${esc(r.dtype)}</td>
+      <td class="in">${esc(r.su)}</td>
+      <td class="in">${esc(r.vol)}</td>
+      <td class="in">${esc(r.scan)}</td>
+    </tr>`;
+  }
+
+  // BoM
+  let bomRows = '';
+  if (d.bom.length) {
+    d.bom.forEach(r => {
+      bomRows += `<tr>
+        <td style="text-align:center">${esc(r.n)}</td>
+        <td><strong>${esc(r.name)}</strong></td>
+        <td>${esc(r.desc)}</td>
+        <td class="in" style="text-align:center">${esc(r.qty)}</td>
+        <td style="color:#5A6F7E;font-size:9pt">${esc(r.basis)}</td>
+      </tr>`;
+    });
+  } else {
+    bomRows = `<tr><td colspan="5" style="color:#5A6F7E;padding:12px">No BoM generated yet. On the website: fill volumes &amp; capabilities → click <strong>Generate / Refresh BoM</strong>, then export again. Or complete this table manually.</td></tr>`;
+  }
+
+  // DSPM packaging matrix (same as site)
+  const matrix = [
+    ['Data Command Center','✓','✓','✓'],
+    ['Data Inventory Sync','✓','✓','✓'],
+    ['Data Scanning and Classification','✓','✓','✓'],
+    ['File Clustering Analysis','✓','✓','✓'],
+    ['Insights Policies for structured and unstructured data','✓','✓','✓'],
+    ['Cloud Asset Discovery and Posture Policies','—','✓','✓'],
+    ['AI Model Discovery and Posture Policies','—','✓','✓'],
+    ['VM Package Discovery','—','✓','✓'],
+    ['Compliance Management, Tests, and Data Risk Scoring (Toxic Combinations)','—','✓','✓'],
+    ['Access Intelligence (Privilege and Activity Analysis, Over Provisioned User Identification)','—','✓','✓'],
+    ['Automation Policies (Federated Remediation through ITSM Integration and email Alerts)','—','✓','✓'],
+    ['Remediation Actions on Data - Quarantine, Labeling','—','—','✓'],
+    ['Remediation Actions on Cloud Infrastructure and SaaS','—','—','✓'],
+    ['Access Remediation - Control, Masking, Row Filtering Policies','—','—','✓'],
+    ['Workflow Module','✓','✓','✓'],
+    ['Unlimited Customer Hosted Pods','✓','✓','✓'],
+  ];
+  const matrixRows = matrix.map(r => {
+    const cells = r.map((c,i) => {
+      if (i===0) return `<td style="background:#E8F4FC;font-weight:bold">${esc(c)}</td>`;
+      const col = c === '✓' ? 'color:#2E7D32;font-weight:800;text-align:center' : 'color:#B0BEC5;text-align:center';
+      return `<td style="${col}">${c}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+
+  const htmlDoc = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word">
+<head>
+<meta charset="utf-8">
+<meta name="ProgId" content="Word.Document">
+<title>Securiti.ai EMEA — Customer Discovery &amp; Sizing Workbook</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
 <style>
-body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1A2B3C}
-h1{color:#003D6B;font-size:18pt} h2{color:#0077C8;font-size:13pt;border-bottom:2px solid #00B2A9;padding-bottom:4px;margin-top:18px}
-h3{color:#0077C8;font-size:11pt} table{border-collapse:collapse;width:100%;margin:8px 0;font-size:10pt}
-th,td{border:1px solid #B8D4E8;padding:5px 7px;vertical-align:top}
-th{background:#0077C8;color:#fff;text-align:left}
-.lbl{background:#E8F4FC;font-weight:bold;width:28%} .val{background:#FFFDE7}
-.note{background:#E8F5E9;padding:8px;border:1px solid #B8D4E8;font-size:9pt;color:#5A6F7E;margin:8px 0}
-</style></head><body>
-<h1>Securiti.ai EMEA — Customer Discovery, Qualification &amp; Sizing Workbook</h1>
-<p class="note"><strong>Licensing FAQ:</strong> Price is not based on scanned volume. Example: 60 TB in SharePoint is charged as 60 TB even if only a small percentage is scanned.</p>
+  @page { size: A4; margin: 1.4cm 1.2cm; }
+  body { font-family: 'Segoe UI', Calibri, Arial, sans-serif; font-size: 10.5pt; color: #1A2B3C; line-height: 1.35; }
+  .hero {
+    background: #0077C8; color: #fff; padding: 14px 18px; margin: -8px -8px 14px -8px;
+  }
+  .hero h1 { margin: 0; font-size: 16pt; font-weight: 700; }
+  .hero p { margin: 4px 0 0; font-size: 9pt; opacity: 0.95; }
+  .card {
+    border: 1px solid #B8D4E8; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;
+    background: #FAFCFE;
+  }
+  .card h2 {
+    font-size: 12pt; color: #003D6B; margin: 0 0 10px; padding-bottom: 6px;
+    border-bottom: 2px solid #00B2A9;
+  }
+  .card h3 { font-size: 10.5pt; color: #0077C8; margin: 12px 0 6px; }
+  .note {
+    font-size: 8.5pt; color: #5A6F7E; background: #E8F5E9; border: 1px solid #B8D4E8;
+    border-radius: 6px; padding: 8px 10px; margin: 0 0 10px;
+  }
+  .field-label { font-size: 8pt; font-weight: 600; color: #5A6F7E; margin: 0 0 2px; }
+  .in {
+    background: #FFF9E6; border: 1px solid #B8D4E8; padding: 5px 7px; min-height: 16px;
+  }
+  table.form { width: 100%; border-collapse: collapse; margin: 4px 0 8px; }
+  table.form td { padding: 4px 6px 8px 0; vertical-align: top; width: 50%; }
+  table.inv { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin: 6px 0; }
+  table.inv th {
+    text-align: left; padding: 5px 4px; background: #E3F2FD; color: #003D6B;
+    border: 1px solid #B8D4E8; font-size: 8pt;
+  }
+  table.inv td { padding: 4px; border: 1px solid #B8D4E8; vertical-align: top; }
+  table.pkg { width: 100%; border-collapse: collapse; font-size: 8.5pt; margin: 6px 0; }
+  table.pkg th { background: #0077C8; color: #fff; padding: 5px; border: 1px solid #B8D4E8; text-align: center; }
+  table.pkg th:first-child { text-align: left; }
+  table.pkg td { padding: 4px 5px; border: 1px solid #B8D4E8; }
+  .chk { font-size: 9.5pt; margin: 2px 0; }
+  .footer {
+    margin-top: 16px; padding: 10px; text-align: center; font-size: 8pt; color: #fff;
+    background: #0077C8;
+  }
+</style>
+</head>
+<body>
 
-<h2>1. Customer Information</h2>
-<table>
-<tr><td class="lbl">Customer Name</td><td class="val">${esc(d.custName)}</td><td class="lbl">Industry</td><td class="val">${esc(d.industry)}</td></tr>
-<tr><td class="lbl">Country</td><td class="val">${esc(d.country)}</td><td class="lbl">Date</td><td class="val">${esc(d.date)}</td></tr>
-<tr><td class="lbl">Account Executive</td><td class="val">${esc(d.ae)}</td><td class="lbl">Solution Engineer</td><td class="val">${esc(d.se)}</td></tr>
-<tr><td class="lbl">Opportunity Stage</td><td class="val" colspan="3">${esc(joinList(d.stage))}</td></tr>
-</table>
+<div class="hero">
+  <h1>Securiti.ai EMEA — Customer Discovery, Qualification &amp; Sizing Workbook</h1>
+  <p>Fill online · Export Word / Excel / PDF · Share with account team &nbsp;|&nbsp; Exported ${new Date().toLocaleString()}</p>
+</div>
 
-<h2>2. Business &amp; Compliance Requirements</h2>
-<table>
-<tr><td class="lbl">Applicable Regulations</td><td class="val">${esc(joinList(d.reg))}${d.regOther ? ' · Other: '+esc(d.regOther) : ''}</td></tr>
-<tr><td class="lbl">Business Drivers</td><td class="val">${esc(d.drivers)}</td></tr>
-<tr><td class="lbl">Current Challenges</td><td class="val">${esc(d.challenges)}</td></tr>
-<tr><td class="lbl">Expected Outcomes</td><td class="val">${esc(d.outcomes)}</td></tr>
-</table>
+<div class="note"><strong>Instructions:</strong> Yellow cells are inputs. Checkboxes show selections from the website (☑ selected / ☐ not selected). Complete only relevant sections. Return to your Securiti.ai account team.</div>
+<div class="note"><strong>Licensing FAQ — Data volume:</strong> The price points are <em>not</em> based on the volume of scanned data. If the customer has 60 TB in SharePoint, even if they only scan a small percentage of that data, we are charging for 60 TB and the customer can scan as much or little as they want.</div>
 
-<h2>3. Current Environment</h2>
-<table>
-<tr><td class="lbl">Deployment Model</td><td class="val">${esc(joinList(d.deploy))}</td><td class="lbl">Cloud Provider(s)</td><td class="val">${esc(joinList(d.cloud))}</td></tr>
-<tr><td class="lbl">Employees</td><td class="val">${esc(d.employees)}</td><td class="lbl">M365 Users</td><td class="val">${esc(d.m365)}</td></tr>
-<tr><td class="lbl"># Data Systems</td><td class="val">${esc(d.numSystems)}</td><td class="lbl">Deployment Option</td><td class="val">${esc(d.depOpt)}</td></tr>
-<tr><td class="lbl">Structured Data (TB)</td><td class="val">${esc(d.structTB)}</td><td class="lbl">Unstructured Data (TB)</td><td class="val">${esc(d.unstructTB)}</td></tr>
-<tr><td class="lbl">Scan Structured (TB)</td><td class="val">${esc(d.scanStruct)}</td><td class="lbl">Scan Unstructured (TB)</td><td class="val">${esc(d.scanUnstruct)}</td></tr>
-<tr><td class="lbl">Cookie / Univ / Mobile MAU</td><td class="val">${esc(d.cookieMAU)} / ${esc(d.univMAU)} / ${esc(d.mobileMAU)}</td><td class="lbl">Privacy Notice Required</td><td class="val">${esc(d.notice)}</td></tr>
-<tr><td class="lbl">Workflow # Systems</td><td class="val">${esc(d.wfSystems)}</td><td class="lbl">DC / DR / Test</td><td class="val">${esc(d.dcProd)} / ${esc(d.dcDR)} / ${esc(d.dcTest)}</td></tr>
-</table>
+<!-- 1 -->
+<div class="card">
+  <h2>1. Customer Information</h2>
+  <table class="form">
+    <tr>
+      <td><div class="field-label">Customer Name</div><div class="in">${esc(d.custName)}</div></td>
+      <td><div class="field-label">Industry</div><div class="in">${esc(d.industry)}</div></td>
+    </tr>
+    <tr>
+      <td><div class="field-label">Country</div><div class="in">${esc(d.country)}</div></td>
+      <td><div class="field-label">Date</div><div class="in">${esc(d.date)}</div></td>
+    </tr>
+    <tr>
+      <td><div class="field-label">Account Executive</div><div class="in">${esc(d.ae)}</div></td>
+      <td><div class="field-label">Solution Engineer</div><div class="in">${esc(d.se)}</div></td>
+    </tr>
+  </table>
+  <div class="field-label">Opportunity Stage</div>
+  <div class="chk">${chkMany(d.stage, ['Discovery','Demo','Sandbox','RFP','Proposal'])}</div>
+</div>
 
-<h3>3.2 Data Systems Inventory</h3>
-<table>
-<tr><th>#</th><th>System Name</th><th>OEM</th><th>Version</th><th>Deployment</th><th>Data Type</th><th>S/U</th><th>Vol (TB)</th><th>Scan?</th></tr>
-${sysRows}
-</table>
+<!-- 2 -->
+<div class="card">
+  <h2>2. Business &amp; Compliance Requirements</h2>
+  <div class="field-label">Applicable Regulations</div>
+  <div class="chk">${chkMany(d.reg, ['GDPR','KSA PDPL','UAE PDPL'])}</div>
+  <div class="field-label" style="margin-top:8px">Other regulations</div>
+  <div class="in">${esc(d.regOther)}</div>
+  <div class="field-label" style="margin-top:8px">Business Drivers — Why Securiti now?</div>
+  <div class="in" style="min-height:40px">${esc(d.drivers)}</div>
+  <div class="field-label" style="margin-top:8px">Current Challenges — Key pain points</div>
+  <div class="in" style="min-height:40px">${esc(d.challenges)}</div>
+  <div class="field-label" style="margin-top:8px">Expected Business Outcomes — What success looks like</div>
+  <div class="in" style="min-height:40px">${esc(d.outcomes)}</div>
+</div>
 
-<h2>4. Capabilities of Interest</h2>
-<table>
-<tr><td class="lbl">Data Intelligence</td><td class="val">${esc(joinList(d.di))}</td></tr>
-<tr><td class="lbl">DSPM</td><td class="val">${esc(joinList(d.dspm))}</td></tr>
-<tr><td class="lbl">Privacy Automation</td><td class="val">${esc(joinList(d.priv))}</td></tr>
-<tr><td class="lbl">AI Governance</td><td class="val">${esc(joinList(d.ai))}</td></tr>
-</table>
+<!-- 3 -->
+<div class="card">
+  <h2>3. Current Environment</h2>
+  <h3>3.1 Infrastructure Overview</h3>
+  <div class="field-label">Deployment Model</div>
+  <div class="chk">${chkMany(d.deploy, ['On-Prem','Cloud','Hybrid'])}</div>
+  <div class="field-label">Cloud Provider(s)</div>
+  <div class="chk">${chkMany(d.cloud, ['Azure','AWS','GCP','OCI','Other'])}</div>
+  <table class="form">
+    <tr>
+      <td><div class="field-label">Number of Employees</div><div class="in">${esc(d.employees)}</div></td>
+      <td><div class="field-label">Microsoft 365 Users</div><div class="in">${esc(d.m365)}</div></td>
+    </tr>
+    <tr>
+      <td><div class="field-label">Number of Data Systems</div><div class="in">${esc(d.numSystems)}</div></td>
+      <td><div class="field-label">Structured / Unstructured Data (TB)</div><div class="in">${esc(d.structTB)} / ${esc(d.unstructTB)}</div></td>
+    </tr>
+  </table>
 
-<h2>5. Project Objectives</h2>
-<p>${esc(joinList(d.obj))}</p>
+  <h3>3.2 Data Systems Inventory</h3>
+  <div class="note" style="margin-bottom:6px"><strong>Examples</strong> — Data Systems: Oracle DB, Microsoft SQL Server, Snowflake, SharePoint, Salesforce, SAP HANA, IBM Db2, Amazon S3, Azure Blob, GCS, Databricks, PostgreSQL, MySQL, MongoDB, ServiceNow. OEM: Oracle, Microsoft, SAP, IBM, AWS, Google Cloud, Salesforce, Snowflake, Databricks. Deployment: On-prem, Cloud, Hybrid. Data Types: Database, File Share, SaaS, Cloud Storage, Data Lake.</div>
+  <table class="inv">
+    <tr>
+      <th>#</th><th>Data System Name</th><th>Software / OEM</th><th>Version</th><th>Deployment</th><th>Data Type</th><th>Struct / Unstruct</th><th>Vol (TB)</th><th>Scan?</th>
+    </tr>
+    ${sysRows}
+  </table>
 
-<h2>6. Additional Information</h2>
-<table>
-<tr><td class="lbl">Challenges</td><td class="val">${esc(d.addChallenges)}</td></tr>
-<tr><td class="lbl">Outcomes</td><td class="val">${esc(d.addOutcomes)}</td></tr>
-<tr><td class="lbl">Notes</td><td class="val">${esc(d.addNotes)}</td></tr>
-</table>
+  <h3>3.3 Data Volume to be Scanned</h3>
+  <div class="note"><strong>FAQ:</strong> Pricing is on data volume <em>in scope</em> (e.g. 60 TB SharePoint = 60 TB charged), not on how much is scanned.</div>
+  <table class="form">
+    <tr>
+      <td><div class="field-label">Structured Data (TB)</div><div class="in">${esc(d.scanStruct)}</div></td>
+      <td><div class="field-label">Unstructured Data (TB)</div><div class="in">${esc(d.scanUnstruct)}</div></td>
+    </tr>
+  </table>
 
-<h2>7. Automatic / Recommended Bill of Materials</h2>
-<p class="note">Sizing aid only — not a commercial quote. Validate with Securiti AE/SE.</p>
-<table>
-<tr><th>#</th><th>Product Name</th><th>Description</th><th>Qty</th><th>Basis</th></tr>
-${bomRows}
-</table>
+  <h3>3.4 Cookie, Universal &amp; Mobile Consent</h3>
+  <table class="form">
+    <tr>
+      <td><div class="field-label">Cookie Consent MAU</div><div class="in">${esc(d.cookieMAU)}</div></td>
+      <td><div class="field-label">Universal Consent MAU</div><div class="in">${esc(d.univMAU)}</div></td>
+    </tr>
+    <tr>
+      <td><div class="field-label">Mobile Consent MAU</div><div class="in">${esc(d.mobileMAU)}</div></td>
+      <td><div class="field-label">Workflow — # of Data Systems</div><div class="in">${esc(d.wfSystems)}</div></td>
+    </tr>
+  </table>
+  <div class="field-label">Privacy &amp; Notice Management Required</div>
+  <div class="chk">${radio(d.notice,'Yes')} Yes &nbsp;&nbsp; ${radio(d.notice,'No')} No</div>
 
-<p style="margin-top:24px;font-size:9pt;color:#5A6F7E">Generated from Securiti.ai EMEA Discovery Workbook · ${new Date().toLocaleString()}</p>
-</body></html>`;
+  <h3>3.5 Data Centers</h3>
+  <table class="form">
+    <tr>
+      <td><div class="field-label">Production (DC)</div><div class="in">${esc(d.dcProd)}</div></td>
+      <td><div class="field-label">Disaster Recovery (DR)</div><div class="in">${esc(d.dcDR)}</div></td>
+    </tr>
+    <tr>
+      <td><div class="field-label">Test / Non-Prod</div><div class="in">${esc(d.dcTest)}</div></td>
+      <td></td>
+    </tr>
+  </table>
+
+  <h3>3.6 Deployment Option (Select One)</h3>
+  <div class="chk">${radio(d.depOpt,'AWS Hybrid')} <strong>AWS Hybrid</strong> — Management Console in AWS; Pods / Collectors / Sensors / Gateway at customer DC</div>
+  <div class="chk">${radio(d.depOpt,'Fully Cloud (SaaS)')} <strong>Fully Cloud (SaaS)</strong></div>
+</div>
+
+<!-- 4 -->
+<div class="card">
+  <h2>4. Business Requirements — Capabilities of Interest</h2>
+  <h3>4.1 Data Intelligence</h3>
+  <div class="chk">${chkMany(d.di, ['Sensitive Data Discovery','Data Classification','Enterprise Data Inventory','ROT Data Identification','Data Command Center'])}</div>
+  <h3>4.2 DSPM</h3>
+  <div class="chk">${chkMany(d.dspm, ['Cloud Data Security Posture','Public Storage Exposure','Excessive Permissions','Data Access Intelligence','AI Security Posture'])}</div>
+  <h3>4.3 Privacy Automation</h3>
+  <div class="chk">${chkMany(d.priv, ['Workflow Automation','Assessment Automation','Vendor Risk Management','Data Mapping Automation (RoPA)','DSR Portal & Workbench','Robotic DSR Fulfillment','Data Breach Management','Cookie Consent Management','Universal Consent Management','Privacy Notice Management'])}</div>
+  <h3>4.4 AI Governance</h3>
+  <div class="chk">${chkMany(d.ai, ['AI Discovery','AI Security','AI Compliance','AI Risk Management','Microsoft Copilot','OpenAI','Gemini','Claude'])}</div>
+</div>
+
+<!-- 5 -->
+<div class="card">
+  <h2>5. Project Objectives</h2>
+  <div class="chk">${chkMany(d.obj, ['Meet Regulatory Compliance','Reduce Business Risk','Improve Data Visibility','Implement Data Classification','Secure Cloud Data','Automate Privacy Operations','Implement AI Governance','Improve Audit Readiness','Optimize Storage / Reduce ROT Data'])}</div>
+</div>
+
+<!-- 6 -->
+<div class="card">
+  <h2>6. Additional Information</h2>
+  <div class="field-label">Current Challenges</div>
+  <div class="in" style="min-height:48px">${esc(d.addChallenges)}</div>
+  <div class="field-label" style="margin-top:8px">Expected Outcomes</div>
+  <div class="in" style="min-height:48px">${esc(d.addOutcomes)}</div>
+  <div class="field-label" style="margin-top:8px">Additional Notes</div>
+  <div class="in" style="min-height:48px">${esc(d.addNotes)}</div>
+</div>
+
+<!-- 7 DSPM matrix + BoM -->
+<div class="card">
+  <h2>7. Automatic Bill of Materials (BoM) &amp; DSPM Packaging</h2>
+  <div class="note">Generated from website inputs. Quantities editable conceptually; not a commercial quote. Validate with Securiti AE/SE.</div>
+
+  <h3>DSPM packages — how it is packaged</h3>
+  <div class="note">Green ✓ = included. Matches official DSPM packaging: Advanced includes Command Center, Inventory, Scanning, Classification, Insights, Workflow, Unlimited Pods. Enterprise adds posture/compliance/automation. Plus adds remediation.</div>
+  <table class="pkg">
+    <tr>
+      <th>Capabilities</th>
+      <th>Advanced</th>
+      <th>Enterprise</th>
+      <th>Enterprise Plus</th>
+    </tr>
+    ${matrixRows}
+  </table>
+
+  <h3>Recommended / Generated BoM</h3>
+  <table class="inv">
+    <tr>
+      <th>#</th><th>Product Name</th><th>Product Description</th><th>Qty</th><th>Basis (from workbook)</th>
+    </tr>
+    ${bomRows}
+  </table>
+</div>
+
+<div class="note" style="text-align:center;margin-top:14px">
+  Thank you for completing this workbook.<br>
+  Please return the completed document to your <strong>Securiti.ai</strong> account team.
+</div>
+
+<div class="footer">
+  Securiti.ai EMEA · Customer Discovery, Qualification &amp; Sizing · Exported from online workbook · Word / Excel / PDF
+</div>
+
+</body>
+</html>`;
 
   const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword' });
   downloadBlob(blob, fname('doc'));
