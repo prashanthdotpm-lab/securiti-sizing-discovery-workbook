@@ -136,17 +136,19 @@
       <div class="hero-inner">
         <div>
           <h1>Securiti.ai EMEA — Customer Discovery, Qualification &amp; Sizing Workbook</h1>
-          <p>Fill online · Share with account team · Export PDF for records</p>
+          <p>Fill online · Export Word / Excel / PDF · Share with account team</p>
         </div>
-        <div class="hero-actions" style="display:flex;gap:0.4rem;flex-wrap:wrap">
+        <div class="hero-actions" style="display:flex;gap:0.35rem;flex-wrap:wrap">
           <button type="button" class="btn btn-ghost" onclick="clearForm()">Clear</button>
-          <button type="button" class="btn btn-white" onclick="window.print()">Export PDF</button>
+          <button type="button" class="btn btn-white" onclick="exportWord()" title="Download Word .doc">Word</button>
+          <button type="button" class="btn btn-white" onclick="exportExcel()" title="Download Excel .csv">Excel</button>
+          <button type="button" class="btn btn-white" onclick="window.print()" title="Print / Save as PDF">PDF</button>
         </div>
       </div>
     </header>
 
     <div class="wrap">
-      <div class="note">Instructions: Complete gray/yellow input fields. Use checkboxes where shown. Complete only sections relevant to this opportunity. Export PDF when done and return to your Securiti.ai account team.</div>
+      <div class="note">Instructions: Complete gray/yellow input fields. Use checkboxes where shown. Complete only sections relevant to this opportunity. Export as <strong>Word</strong>, <strong>Excel</strong> or <strong>PDF</strong> (empty template or filled) and return to your Securiti.ai account team.</div>
 
       <div class="note" id="licensingFaq">
         <strong>Licensing FAQ — Data volume:</strong> The price points are <em>not</em> based on the volume of scanned data.
@@ -392,7 +394,9 @@
 
         <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem" class="no-print">
           <button type="button" class="btn btn-white" style="background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff" onclick="generateBOM()">Generate / Refresh BoM</button>
-          <button type="button" class="btn btn-ghost" style="background:#fff;color:var(--blue-dark);border:1px solid var(--border)" onclick="window.print()">Export PDF (includes BoM)</button>
+          <button type="button" class="btn btn-ghost" style="background:#fff;color:var(--blue-dark);border:1px solid var(--border)" onclick="exportWord()">Export Word</button>
+          <button type="button" class="btn btn-ghost" style="background:#fff;color:var(--blue-dark);border:1px solid var(--border)" onclick="exportExcel()">Export Excel</button>
+          <button type="button" class="btn btn-ghost" style="background:#fff;color:var(--blue-dark);border:1px solid var(--border)" onclick="window.print()">Export PDF</button>
         </div>
         <div id="bomSummary" class="note" style="display:none"></div>
         <div style="overflow-x:auto">
@@ -419,11 +423,13 @@
         Please export PDF and return the completed document to your <strong>Securiti.ai</strong> account team.
       </div>
       <div style="text-align:center;margin:0.75rem 0 1.5rem" class="no-print">
-        <button type="button" class="btn btn-white" style="background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:0.65rem 1.5rem;font-size:0.9rem" onclick="window.print()">Export / Print PDF</button>
+        <button type="button" class="btn btn-white" style="background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:0.65rem 1.5rem;font-size:0.9rem" onclick="exportWord()">Word</button>
+        <button type="button" class="btn btn-white" style="background:linear-gradient(135deg,var(--teal),var(--green));color:#fff;padding:0.65rem 1.2rem;font-size:0.9rem;margin:0 0.25rem" onclick="exportExcel()">Excel</button>
+        <button type="button" class="btn btn-white" style="background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;padding:0.65rem 1.2rem;font-size:0.9rem" onclick="window.print()">PDF</button>
       </div>
     </div>
 
-    <footer>Securiti.ai EMEA · Customer Discovery, Qualification &amp; Sizing · Online workbook · Export PDF for account team</footer>
+    <footer>Securiti.ai EMEA · Customer Discovery, Qualification &amp; Sizing · Online workbook · Export Word / Excel / PDF</footer>
 
   <button type="button" class="chat-toggle" onclick="toggleChat()" title="Ask the assistant">💬</button>
   <div class="chat-panel" id="chatPanel">
@@ -547,7 +553,7 @@
       { keys: ['deploy', 'hybrid', 'saas', 'aws', 'pod', 'cloud'],
         a: '<strong>Deployment option (pick one):</strong><br>• <em>AWS Hybrid</em> — Securiti console in AWS; collectors/pods/sensors/gateway in the customer data center (common for regulated / on-prem data)<br>• <em>Fully Cloud (SaaS)</em> — no on-prem pods<br>Also tick On-Prem / Cloud / Hybrid under infrastructure and Azure/AWS/GCP/OCI as used.' },
       { keys: ['pdf', 'export', 'print', 'save'],
-        a: '<strong>Export PDF:</strong> Click <em>Export PDF</em> in the header (or bottom). In the print dialog choose <em>Save as PDF</em> / <em>Microsoft Print to PDF</em>. Then email the file to your Securiti account team.' },
+        a: '<strong>Export options:</strong><br>• <em>Word</em> — downloads a .doc file (opens in Microsoft Word) with all filled fields and BoM<br>• <em>Excel</em> — downloads a .csv file (opens in Excel) with sections, inventory and BoM<br>• <em>PDF</em> — use browser Print → Save as PDF<br>Works for empty template or after filling.' },
       { keys: ['regulation', 'gdpr', 'pdpl', 'dora', 'hipaa', 'compliance'],
         a: '<strong>Regulations — common options:</strong> GDPR (EU), KSA PDPL, UAE PDPL, NDMO, PCI DSS, ISO 27001, DORA (EU financial), HIPAA (health). Add others in “Other regulations”. Example: EU bank → GDPR + DORA + ISO 27001.' },
       { keys: ['system', 'inventory', 'oracle', 'sharepoint', 'snowflake'],
@@ -852,6 +858,258 @@ if (wantDiscovery && structTB > 0) {
       }
     }
   </script>
+
+
+<script>
+/* ========== Collect form data (works empty or filled) ========== */
+function getField(id) {
+  const el = document.getElementById(id);
+  return el ? (el.value || '') : '';
+}
+function getChecks(name) {
+  return Array.from(document.querySelectorAll('input[name="'+name+'"]:checked')).map(x => x.value);
+}
+function getRadio(name) {
+  const el = document.querySelector('input[name="'+name+'"]:checked');
+  return el ? el.value : '';
+}
+function collectData() {
+  const systems = [];
+  document.querySelectorAll('#sysBody tr').forEach((tr, i) => {
+    const inputs = tr.querySelectorAll('input, select');
+    const row = { n: i+1 };
+    const keys = ['name','oem','ver','dep','dtype','su','vol','scan'];
+    inputs.forEach((inp, j) => { if (keys[j]) row[keys[j]] = inp.value || ''; });
+    if (Object.keys(row).some(k => k !== 'n' && row[k])) systems.push(row);
+  });
+  const bom = [];
+  document.querySelectorAll('#bomBody tr').forEach((tr) => {
+    const tds = tr.querySelectorAll('td');
+    if (tds.length >= 4 && tds[0].textContent.trim() && !tds[0].textContent.includes('No BoM')) {
+      const qtyInp = tds[3].querySelector('input');
+      bom.push({
+        n: tds[0].textContent.trim(),
+        name: tds[1].textContent.trim(),
+        desc: tds[2].textContent.trim(),
+        qty: qtyInp ? qtyInp.value : tds[3].textContent.trim(),
+        basis: tds[4] ? tds[4].textContent.trim() : ''
+      });
+    }
+  });
+  return {
+    custName: getField('custName'), industry: getField('industry'), country: getField('country'),
+    date: getField('date'), ae: getField('ae'), se: getField('se'),
+    stage: getChecks('stage'),
+    reg: getChecks('reg'), regOther: getField('regOther'),
+    drivers: getField('drivers'), challenges: getField('challenges'), outcomes: getField('outcomes'),
+    deploy: getChecks('deploy'), cloud: getChecks('cloud'),
+    employees: getField('employees'), m365: getField('m365'), numSystems: getField('numSystems'),
+    structTB: getField('structTB'), unstructTB: getField('unstructTB'),
+    systems,
+    scanStruct: getField('scanStruct'), scanUnstruct: getField('scanUnstruct'),
+    cookieMAU: getField('cookieMAU'), univMAU: getField('univMAU'), mobileMAU: getField('mobileMAU'),
+    notice: getRadio('notice'), wfSystems: getField('wfSystems'),
+    dcProd: getField('dcProd'), dcDR: getField('dcDR'), dcTest: getField('dcTest'),
+    depOpt: getRadio('depOpt'),
+    di: getChecks('di'), dspm: getChecks('dspm'), priv: getChecks('priv'), ai: getChecks('ai'),
+    obj: getChecks('obj'),
+    addChallenges: getField('addChallenges'), addOutcomes: getField('addOutcomes'), addNotes: getField('addNotes'),
+    bom
+  };
+}
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function joinList(arr) { return (arr && arr.length) ? arr.join(', ') : '—'; }
+function fname(ext) {
+  const d = collectData();
+  const base = (d.custName || 'Securiti_Discovery_Workbook').replace(/[^\w\- ]+/g,'').replace(/\s+/g,'_').slice(0,40);
+  const stamp = new Date().toISOString().slice(0,10);
+  return base + '_Discovery_' + stamp + '.' + ext;
+}
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
+}
+
+/* ========== WORD (.doc via HTML that Word opens) ========== */
+function exportWord() {
+  const d = collectData();
+  const sysRows = (d.systems.length ? d.systems : [{n:1,name:'',oem:'',ver:'',dep:'',dtype:'',su:'',vol:'',scan:''}]).map(r =>
+    '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.oem)+'</td><td>'+esc(r.ver)+'</td><td>'+esc(r.dep)+'</td><td>'+esc(r.dtype)+'</td><td>'+esc(r.su)+'</td><td>'+esc(r.vol)+'</td><td>'+esc(r.scan)+'</td></tr>'
+  ).join('');
+  const bomRows = d.bom.length ? d.bom.map(r =>
+    '<tr><td>'+esc(r.n)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.desc)+'</td><td>'+esc(r.qty)+'</td><td>'+esc(r.basis)+'</td></tr>'
+  ).join('') : '<tr><td colspan="5">No BoM generated yet — fill form and click Generate BoM on the website, or complete manually.</td></tr>';
+
+  const htmlDoc = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8">
+<title>Securiti Discovery Workbook</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->
+<style>
+body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#1A2B3C}
+h1{color:#003D6B;font-size:18pt} h2{color:#0077C8;font-size:13pt;border-bottom:2px solid #00B2A9;padding-bottom:4px;margin-top:18px}
+h3{color:#0077C8;font-size:11pt} table{border-collapse:collapse;width:100%;margin:8px 0;font-size:10pt}
+th,td{border:1px solid #B8D4E8;padding:5px 7px;vertical-align:top}
+th{background:#0077C8;color:#fff;text-align:left}
+.lbl{background:#E8F4FC;font-weight:bold;width:28%} .val{background:#FFFDE7}
+.note{background:#E8F5E9;padding:8px;border:1px solid #B8D4E8;font-size:9pt;color:#5A6F7E;margin:8px 0}
+</style></head><body>
+<h1>Securiti.ai EMEA — Customer Discovery, Qualification &amp; Sizing Workbook</h1>
+<p class="note"><strong>Licensing FAQ:</strong> Price is not based on scanned volume. Example: 60 TB in SharePoint is charged as 60 TB even if only a small percentage is scanned.</p>
+
+<h2>1. Customer Information</h2>
+<table>
+<tr><td class="lbl">Customer Name</td><td class="val">${esc(d.custName)}</td><td class="lbl">Industry</td><td class="val">${esc(d.industry)}</td></tr>
+<tr><td class="lbl">Country</td><td class="val">${esc(d.country)}</td><td class="lbl">Date</td><td class="val">${esc(d.date)}</td></tr>
+<tr><td class="lbl">Account Executive</td><td class="val">${esc(d.ae)}</td><td class="lbl">Solution Engineer</td><td class="val">${esc(d.se)}</td></tr>
+<tr><td class="lbl">Opportunity Stage</td><td class="val" colspan="3">${esc(joinList(d.stage))}</td></tr>
+</table>
+
+<h2>2. Business &amp; Compliance Requirements</h2>
+<table>
+<tr><td class="lbl">Applicable Regulations</td><td class="val">${esc(joinList(d.reg))}${d.regOther ? ' · Other: '+esc(d.regOther) : ''}</td></tr>
+<tr><td class="lbl">Business Drivers</td><td class="val">${esc(d.drivers)}</td></tr>
+<tr><td class="lbl">Current Challenges</td><td class="val">${esc(d.challenges)}</td></tr>
+<tr><td class="lbl">Expected Outcomes</td><td class="val">${esc(d.outcomes)}</td></tr>
+</table>
+
+<h2>3. Current Environment</h2>
+<table>
+<tr><td class="lbl">Deployment Model</td><td class="val">${esc(joinList(d.deploy))}</td><td class="lbl">Cloud Provider(s)</td><td class="val">${esc(joinList(d.cloud))}</td></tr>
+<tr><td class="lbl">Employees</td><td class="val">${esc(d.employees)}</td><td class="lbl">M365 Users</td><td class="val">${esc(d.m365)}</td></tr>
+<tr><td class="lbl"># Data Systems</td><td class="val">${esc(d.numSystems)}</td><td class="lbl">Deployment Option</td><td class="val">${esc(d.depOpt)}</td></tr>
+<tr><td class="lbl">Structured Data (TB)</td><td class="val">${esc(d.structTB)}</td><td class="lbl">Unstructured Data (TB)</td><td class="val">${esc(d.unstructTB)}</td></tr>
+<tr><td class="lbl">Scan Structured (TB)</td><td class="val">${esc(d.scanStruct)}</td><td class="lbl">Scan Unstructured (TB)</td><td class="val">${esc(d.scanUnstruct)}</td></tr>
+<tr><td class="lbl">Cookie / Univ / Mobile MAU</td><td class="val">${esc(d.cookieMAU)} / ${esc(d.univMAU)} / ${esc(d.mobileMAU)}</td><td class="lbl">Privacy Notice Required</td><td class="val">${esc(d.notice)}</td></tr>
+<tr><td class="lbl">Workflow # Systems</td><td class="val">${esc(d.wfSystems)}</td><td class="lbl">DC / DR / Test</td><td class="val">${esc(d.dcProd)} / ${esc(d.dcDR)} / ${esc(d.dcTest)}</td></tr>
+</table>
+
+<h3>3.2 Data Systems Inventory</h3>
+<table>
+<tr><th>#</th><th>System Name</th><th>OEM</th><th>Version</th><th>Deployment</th><th>Data Type</th><th>S/U</th><th>Vol (TB)</th><th>Scan?</th></tr>
+${sysRows}
+</table>
+
+<h2>4. Capabilities of Interest</h2>
+<table>
+<tr><td class="lbl">Data Intelligence</td><td class="val">${esc(joinList(d.di))}</td></tr>
+<tr><td class="lbl">DSPM</td><td class="val">${esc(joinList(d.dspm))}</td></tr>
+<tr><td class="lbl">Privacy Automation</td><td class="val">${esc(joinList(d.priv))}</td></tr>
+<tr><td class="lbl">AI Governance</td><td class="val">${esc(joinList(d.ai))}</td></tr>
+</table>
+
+<h2>5. Project Objectives</h2>
+<p>${esc(joinList(d.obj))}</p>
+
+<h2>6. Additional Information</h2>
+<table>
+<tr><td class="lbl">Challenges</td><td class="val">${esc(d.addChallenges)}</td></tr>
+<tr><td class="lbl">Outcomes</td><td class="val">${esc(d.addOutcomes)}</td></tr>
+<tr><td class="lbl">Notes</td><td class="val">${esc(d.addNotes)}</td></tr>
+</table>
+
+<h2>7. Automatic / Recommended Bill of Materials</h2>
+<p class="note">Sizing aid only — not a commercial quote. Validate with Securiti AE/SE.</p>
+<table>
+<tr><th>#</th><th>Product Name</th><th>Description</th><th>Qty</th><th>Basis</th></tr>
+${bomRows}
+</table>
+
+<p style="margin-top:24px;font-size:9pt;color:#5A6F7E">Generated from Securiti.ai EMEA Discovery Workbook · ${new Date().toLocaleString()}</p>
+</body></html>`;
+
+  const blob = new Blob(['\ufeff', htmlDoc], { type: 'application/msword' });
+  downloadBlob(blob, fname('doc'));
+}
+
+/* ========== EXCEL (.csv — opens in Excel) ========== */
+function exportExcel() {
+  const d = collectData();
+  const lines = [];
+  const row = (a) => a.map(c => {
+    const s = String(c == null ? '' : c);
+    if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g,'""') + '"';
+    return s;
+  }).join(',');
+
+  lines.push(row(['Securiti.ai EMEA — Customer Discovery & Sizing Workbook']));
+  lines.push(row(['Generated', new Date().toISOString()]));
+  lines.push(row([]));
+  lines.push(row(['Section', 'Field', 'Value']));
+  const add = (sec, field, val) => lines.push(row([sec, field, val]));
+
+  add('1. Customer', 'Customer Name', d.custName);
+  add('1. Customer', 'Industry', d.industry);
+  add('1. Customer', 'Country', d.country);
+  add('1. Customer', 'Date', d.date);
+  add('1. Customer', 'Account Executive', d.ae);
+  add('1. Customer', 'Solution Engineer', d.se);
+  add('1. Customer', 'Opportunity Stage', joinList(d.stage));
+  add('2. Compliance', 'Regulations', joinList(d.reg));
+  add('2. Compliance', 'Other regulations', d.regOther);
+  add('2. Compliance', 'Business Drivers', d.drivers);
+  add('2. Compliance', 'Challenges', d.challenges);
+  add('2. Compliance', 'Outcomes', d.outcomes);
+  add('3. Environment', 'Deployment Model', joinList(d.deploy));
+  add('3. Environment', 'Cloud Providers', joinList(d.cloud));
+  add('3. Environment', 'Employees', d.employees);
+  add('3. Environment', 'M365 Users', d.m365);
+  add('3. Environment', 'Number of Data Systems', d.numSystems);
+  add('3. Environment', 'Structured TB', d.structTB);
+  add('3. Environment', 'Unstructured TB', d.unstructTB);
+  add('3. Environment', 'Scan Structured TB', d.scanStruct);
+  add('3. Environment', 'Scan Unstructured TB', d.scanUnstruct);
+  add('3. Environment', 'Cookie MAU', d.cookieMAU);
+  add('3. Environment', 'Universal Consent MAU', d.univMAU);
+  add('3. Environment', 'Mobile Consent MAU', d.mobileMAU);
+  add('3. Environment', 'Privacy Notice Required', d.notice);
+  add('3. Environment', 'Workflow Systems', d.wfSystems);
+  add('3. Environment', 'Production DC', d.dcProd);
+  add('3. Environment', 'DR', d.dcDR);
+  add('3. Environment', 'Test/Non-Prod', d.dcTest);
+  add('3. Environment', 'Deployment Option', d.depOpt);
+  add('4. Capabilities', 'Data Intelligence', joinList(d.di));
+  add('4. Capabilities', 'DSPM', joinList(d.dspm));
+  add('4. Capabilities', 'Privacy Automation', joinList(d.priv));
+  add('4. Capabilities', 'AI Governance', joinList(d.ai));
+  add('5. Objectives', 'Project Objectives', joinList(d.obj));
+  add('6. Notes', 'Additional Challenges', d.addChallenges);
+  add('6. Notes', 'Additional Outcomes', d.addOutcomes);
+  add('6. Notes', 'Additional Notes', d.addNotes);
+
+  lines.push(row([]));
+  lines.push(row(['Data Systems Inventory']));
+  lines.push(row(['#','System Name','OEM','Version','Deployment','Data Type','Struct/Unstruct','Vol TB','Scan?']));
+  if (d.systems.length) {
+    d.systems.forEach(r => lines.push(row([r.n, r.name, r.oem, r.ver, r.dep, r.dtype, r.su, r.vol, r.scan])));
+  } else {
+    lines.push(row(['','(none entered)','','','','','','','']));
+  }
+
+  lines.push(row([]));
+  lines.push(row(['Bill of Materials (sizing aid — not a quote)']));
+  lines.push(row(['#','Product Name','Description','Qty','Basis']));
+  if (d.bom.length) {
+    d.bom.forEach(r => lines.push(row([r.n, r.name, r.desc, r.qty, r.basis])));
+  } else {
+    lines.push(row(['','(generate BoM on website or complete manually)','','','']));
+  }
+
+  lines.push(row([]));
+  lines.push(row(['Licensing FAQ','Price is on volume in scope (e.g. 60 TB SharePoint = 60 TB charged), not on scanned percentage.']));
+
+  const csv = '\ufeff' + lines.join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  downloadBlob(blob, fname('csv'));
+}
+
+/* PDF remains window.print() — browser Save as PDF */
+</script>
 
 </body>
 </html>
