@@ -215,7 +215,7 @@
       <section class="card">
         <h2>3. Current Environment</h2>
         <h3>3.1 Infrastructure Overview</h3>
-        <label class="field"> Customer Infrastructure Overview</label>
+        <label class="field">Customer Infrastructure Overview</label>
         <div class="chk-grid">
           <label class="chk"><input type="checkbox" name="deploy" value="On-Prem" /> On-Prem</label>
           <label class="chk"><input type="checkbox" name="deploy" value="Cloud" /> Cloud</label>
@@ -543,38 +543,85 @@
   </script>
 
   <script>
+
     const QUICK = [
-      'Opportunity stage?',
-      'How to size data TB?',
-      'Cookie / Consent MAU?',
-      'What is ROT?',
+      'Customer info?',
+      'Infrastructure?',
+      'Data systems?',
+      'Data volume TB?',
+      'Consent MAU?',
       'DSPM vs Privacy?',
-      'Deployment options?',
-      'How to export PDF?'
+      'Deployment Hybrid/SaaS?',
+      'Generate BoM?',
+      'Export Word/Excel/PDF?'
     ];
     const KB = [
+      { keys: ['customer name', 'company name', 'legal entity', 'custname'],
+        a: '<strong>Customer Name:</strong> Legal entity name as on the contract (not brand only).<br><em>Example:</em> Doha Bank Q.P.S.C.' },
+      { keys: ['industry', 'sector', 'vertical'],
+        a: '<strong>Industry:</strong> Primary sector.<br><em>Examples:</em> Banking, Telco, Insurance, Healthcare, Retail, Energy, Public sector.' },
+      { keys: ['country', 'geography', 'location', 'hq'],
+        a: '<strong>Country:</strong> Primary country of operation / HQ for this opportunity.<br><em>Example:</em> Qatar, UAE, Saudi Arabia, Germany.' },
+      { keys: ['account executive', 'ae', 'owner'],
+        a: '<strong>Account Executive:</strong> Securiti commercial owner of the opportunity.<br><em>Example:</em> Jane Smith.' },
+      { keys: ['solution engineer', 'se', 'presales'],
+        a: '<strong>Solution Engineer:</strong> Technical owner supporting discovery and demo.<br><em>Example:</em> John Doe.' },
       { keys: ['stage', 'opportunity', 'discovery', 'demo', 'rfp', 'proposal', 'sandbox'],
-        a: '<strong>Opportunity Stage — options:</strong><br>• <em>Discovery</em> — early qualification, still learning needs<br>• <em>Demo</em> — product demonstration planned or done<br>• <em>Sandbox</em> — customer testing in a trial environment<br>• <em>RFP</em> — formal request for proposal<br>• <em>Proposal</em> — commercial proposal in progress<br>Example: Telco still mapping data systems → tick <em>Discovery</em>.' },
-      { keys: ['tb', 'volume', 'structured', 'unstructured', 'size', 'sizing', 'scan', 'faq', 'price', 'licensing', 'sharepoint'],
-        a: '<strong>Licensing FAQ:</strong> Price is <em>not</em> based on scanned volume. Example: 60 TB in SharePoint → charged for 60 TB even if only a small % is scanned; customer can scan as much or little as they want.<br><br><strong>Data volume (TB):</strong><br>• <em>Structured</em> — databases, warehouses (Oracle, Snowflake, SQL…)<br>• <em>Unstructured</em> — files, SharePoint, S3, email, lakes<br>Enter total estate and what you plan to scan. Example: 100 TB structured + 250 TB unstructured; scan may be a subset. Licensing is often on volume <em>in scope</em>, not only what you scan.' },
-      { keys: ['cookie', 'consent', 'mau', 'universal', 'mobile', 'notice'],
-        a: '<strong>Consent & Notice:</strong><br>• <em>Cookie Consent</em> — website banners; size by Monthly Active Unique Users (MAU), often in slabs of 100K<br>• <em>Universal Consent</em> — preferences across channels<br>• <em>Mobile Consent</em> — apps; also MAU-based<br>• <em>Privacy Notice</em> — Yes if you need centralized notice lifecycle<br>Example: 1,000,000 website MAU → 10 × 100K cookie units.' },
-      { keys: ['rot', 'storage', 'redundant', 'orphan'],
-        a: '<strong>ROT data:</strong> Redundant, Obsolete, or Trivial data that still costs cloud/storage. Tick “ROT Data Identification” under Data Intelligence and “Optimize Storage / Reduce ROT” under objectives if this is a driver. Example: old SharePoint sites and unused S3 buckets still billed by AWS.' },
-      { keys: ['dspm', 'posture', 'privacy', 'intelligence', 'capability'],
-        a: '<strong>Capability groups:</strong><br>• <em>Data Intelligence</em> — find, classify, inventory, ROT, command center<br>• <em>DSPM</em> — cloud posture, exposure, permissions, access, AI posture<br>• <em>Privacy Automation</em> — DSR, RoPA, assessments, vendor, breach, consent, notices, workflows<br>• <em>AI Governance</em> — Copilot, OpenAI, Gemini, Claude risk/compliance<br>Tick only what the customer cares about for this deal.' },
-      { keys: ['deploy', 'hybrid', 'saas', 'aws', 'pod', 'cloud'],
-        a: '<strong>Deployment option (pick one):</strong><br>• <em>AWS Hybrid</em> — Securiti console in AWS; collectors/pods/sensors/gateway in the customer data center (common for regulated / on-prem data)<br>• <em>Fully Cloud (SaaS)</em> — no on-prem pods<br>Also tick On-Prem / Cloud / Hybrid under infrastructure and Azure/AWS/GCP/OCI as used.' },
-      { keys: ['pdf', 'export', 'print', 'save'],
-        a: '<strong>Export options:</strong><br>• <em>Word</em> — downloads a .doc file (opens in Microsoft Word) with all filled fields and BoM<br>• <em>Excel</em> — downloads a .csv file (opens in Excel) with sections, inventory and BoM<br>• <em>PDF</em> — use browser Print → Save as PDF<br>Works for empty template or after filling.' },
-      { keys: ['regulation', 'gdpr', 'pdpl', 'pipl', 'dpdp', 'lgpd', 'ccpa', 'cpra', 'pdpa', 'popia', 'kvkk', 'appi', 'pipa', 'compliance'],
-        a: '<strong>Regulations:</strong> 🇪🇺 GDPR (EU), 🇨🇳 China PIPL, 🇮🇳 India DPDP, 🇸🇦 Saudi PDPL, 🇧🇷 Brazil LGPD, 🇺🇸 CPRA/CCPA, 🇬🇧 UK GDPR, 🇸🇬 Singapore PDPA, 🇰🇷 Korea PIPA, 🇯🇵 Japan APPI, 🇦🇪 UAE PDPL, 🇿🇦 South Africa POPIA, 🇹🇭 Thailand PDPA, 🇶🇦 Qatar PDPPL, 🇧🇭 Bahrain PDPL, 🇹🇷 Turkey KVKK. Add others in “Other regulations”.' },
-      { keys: ['system', 'inventory', 'oracle', 'sharepoint', 'snowflake'],
-        a: '<strong>Data systems inventory:</strong> List systems to assess — name, OEM, version, on-prem/cloud/hybrid, type (DB, file, SaaS, storage, lake), structured/unstructured, volume TB, scan Yes/No. Examples: Oracle 19c on-prem 40 TB structured; SharePoint Online 15 TB unstructured; Snowflake on AWS 25 TB.' },
-      { keys: ['objective', 'outcome', 'driver', 'why'],
-        a: '<strong>Objectives / drivers examples:</strong> Meet regulatory compliance; reduce breach risk; improve data visibility; classify sensitive data; secure cloud; automate DSRs; AI governance for Copilot; audit readiness; cut storage cost via ROT. Write “why now” in Business Drivers in plain language.' },
-      { keys: ['how', 'fill', 'use', 'help', 'start'],
-        a: '<strong>How to use this workbook:</strong><br>1) Customer info & stage<br>2) Regulations & why Securiti<br>3) Environment, volumes, systems, consent, deployment<br>4) Tick capabilities of interest<br>5) Project objectives<br>6) Extra notes<br>Then <em>Export PDF</em>. Ask me about any field for examples.' }
+        a: '<strong>Opportunity Stage:</strong><br>• Discovery — early qualification<br>• Demo — product shown<br>• Sandbox — customer trial<br>• RFP — formal bid<br>• Proposal — commercial offer in progress' },
+      { keys: ['regulation', 'gdpr', 'pdpl', 'pipl', 'dpdp', 'lgpd', 'ccpa', 'cpra', 'pdpa', 'popia', 'kvkk', 'appi', 'pipa', 'pdppl', 'compliance', 'law'],
+        a: '<strong>Applicable Regulations:</strong> Tick all that apply (GDPR, China PIPL, Saudi PDPL, India DPDP, Brazil LGPD, CPRA/CCPA, UK GDPR, Singapore PDPA, Korea PIPA, Japan APPI, UAE PDPL, POPIA, Thailand PDPA, Qatar PDPPL, Bahrain PDPL, Turkey KVKK). Use <em>Other</em> for anything else.' },
+      { keys: ['driver', 'why securiti', 'why now', 'business driver'],
+        a: '<strong>Business Drivers:</strong> Why look at Securiti <em>now</em>?<br><em>Examples:</em> Board deadline for PDPPL; reduce DSAR backlog; cut cloud storage cost from ROT; prepare for audit.' },
+      { keys: ['challenge', 'pain', 'problem'],
+        a: '<strong>Current Challenges:</strong> What hurts today?<br><em>Examples:</em> No central inventory; manual DSARs take weeks; unknown sensitive data in SharePoint/S3.' },
+      { keys: ['outcome', 'success', 'goal', 'objective'],
+        a: '<strong>Expected Outcomes / Objectives:</strong> What does success look like?<br><em>Examples:</em> Automated ROPA; DSAR SLA &lt; 30 days; quarantine ROT; audit-ready evidence.' },
+      { keys: ['infrastructure', 'environment', '3.1', 'overview'],
+        a: '<strong>Infrastructure Overview (3.1):</strong><br>• <em>Deployment:</em> On-Prem / Cloud / Hybrid (tick all that apply)<br>• <em>Cloud:</em> Azure, AWS, GCP, OCI, Other<br>• <em>Employees / M365 users / # systems</em><br>• <em>Structured &amp; Unstructured TB</em> — estate size for context<br><em>Example:</em> Hybrid · AWS+Azure · 12,000 employees · 80 TB structured · 200 TB unstructured.' },
+      { keys: ['deploy model', 'on-prem', 'on prem', 'hybrid', 'deployment model'],
+        a: '<strong>Deployment Model:</strong> Where data and apps live today.<br>☐ On-Prem &nbsp; ☐ Cloud &nbsp; ☐ Hybrid<br><em>Example:</em> Core banking on-prem + M365/Salesforce in cloud → tick <strong>Hybrid</strong>.' },
+      { keys: ['cloud provider', 'azure', 'aws', 'gcp', 'oci', 'provider'],
+        a: '<strong>Cloud Provider(s):</strong> Select all in use.<br><em>Example:</em> AWS + Azure for a multi-cloud bank.' },
+      { keys: ['employee', 'headcount', 'staff'],
+        a: '<strong>Number of Employees:</strong> Approximate group headcount.<br><em>Example:</em> 8500' },
+      { keys: ['m365', 'microsoft 365', 'office 365', 'o365'],
+        a: '<strong>Microsoft 365 Users:</strong> Licensed M365 seats (affects discovery scope).<br><em>Example:</em> 6000' },
+      { keys: ['number of data systems', 'num systems', 'how many systems'],
+        a: '<strong>Number of Data Systems:</strong> Approximate systems that hold personal/sensitive data.<br><em>Example:</em> 40 (core banking, CRM, HR, data lake, file shares…).' },
+      { keys: ['system inventory', 'data system', '3.2', 'oracle', 'sharepoint', 'snowflake', 'inventory table'],
+        a: '<strong>Data Systems Inventory (3.2):</strong> One row per important system.<br>• Name · OEM · Version · On-prem/Cloud/Hybrid · Type (DB/File/SaaS/Storage/Lake) · Structured/Unstructured · Vol TB · Scan Yes/No<br><em>Example:</em> SharePoint Online · Microsoft · Cloud · File Share · Unstructured · 60 TB · Scan Yes' },
+      { keys: ['tb', 'volume', 'structured', 'unstructured', 'size', 'sizing', 'scan', 'faq', 'sharepoint', 'pricing', 'license'],
+        a: '<strong>Data volume / FAQ:</strong> Enter estate TB and scan-scope TB in 3.3.<br><strong>Pricing is on volume in scope</strong> (e.g. 60 TB SharePoint = 60 TB charged), <em>not</em> on how much you scan. Customer may scan any % of licensed volume.' },
+      { keys: ['cookie', 'consent', 'mau', 'universal', 'mobile', 'notice', '3.4'],
+        a: '<strong>Consent (3.4):</strong> MAU = Monthly Active Unique Users (often priced per 100K).<br>• Cookie — websites<br>• Universal — cross-channel preferences<br>• Mobile — apps<br>• Privacy Notice — Yes if you need centralized notice lifecycle<br><em>Example:</em> 1,000,000 web MAU → 10 × 100K cookie units.' },
+      { keys: ['workflow orchestration', 'wf systems', 'workflow systems'],
+        a: '<strong>Workflow — # of Data Systems:</strong> Systems to connect for privacy workflows / robotic DSR.<br><em>Example:</em> 25' },
+      { keys: ['data center', 'dc', 'dr', 'disaster', '3.5', 'non-prod'],
+        a: '<strong>Data Centers (3.5):</strong> Location or count for Production, DR, and Test/Non-Prod.<br><em>Example:</em> Prod: Doha DC1 · DR: Doha DC2 · Test: 1 non-prod.' },
+      { keys: ['depopt', 'aws hybrid', 'saas', 'fully cloud', '3.6', 'pod', 'collector', 'deployment option'],
+        a: '<strong>Deployment Option (pick one):</strong><br>• <em>AWS Hybrid</em> — Securiti console in AWS; pods/collectors/gateway in customer DC (common for regulated on-prem data)<br>• <em>Fully Cloud (SaaS)</em> — no customer-hosted pods' },
+      { keys: ['data intelligence', 'discovery', 'classification', 'command center', 'rot data', '4.1'],
+        a: '<strong>Data Intelligence (4.1):</strong> Tick what you need — Sensitive Data Discovery, Classification, Inventory, ROT identification, Command Center.<br><em>Example:</em> First project often Discovery + Classification.' },
+      { keys: ['dspm', 'posture', 'exposure', 'permissions', '4.2'],
+        a: '<strong>DSPM (4.2):</strong> Cloud posture, public storage exposure, excessive permissions, access intelligence, AI posture.<br>Maps to <em>Enterprise</em> tier in packaging (Advanced = discovery/classify; Plus = remediation).' },
+      { keys: ['privacy automation', 'dsr', 'ropa', 'assessment', 'vendor', 'breach', '4.3'],
+        a: '<strong>Privacy Automation (4.3):</strong> Workflow, Assessment, Vendor risk, RoPA/data mapping, DSR portal, Robotic DSR, Breach, Cookie/Universal consent, Privacy Notice.<br>Tick only modules in scope for this deal.' },
+      { keys: ['ai governance', 'copilot', 'openai', 'gemini', 'claude', '4.4'],
+        a: '<strong>AI Governance (4.4):</strong> AI discovery, security, compliance, risk — and platforms (Copilot, OpenAI, Gemini, Claude).<br><em>Example:</em> Bank rolling out M365 Copilot → tick Microsoft Copilot + AI Risk.' },
+      { keys: ['project objective', '5.', 'objectives'],
+        a: '<strong>Project Objectives (5):</strong> Tick primary goals — compliance, risk reduction, visibility, classification, secure cloud, automate privacy ops, AI governance, audit readiness, reduce ROT/storage cost.' },
+      { keys: ['additional', 'notes', '6.'],
+        a: '<strong>Additional Information (6):</strong> Free text for challenges, outcomes, and notes not captured above. Keep concise for the account team.' },
+      { keys: ['bom', 'bill of materials', 'sku', 'quantity', 'qty', 'generate'],
+        a: '<strong>Automatic BoM (7):</strong> Fill volumes + tick capabilities → <em>Generate / Refresh BoM</em>.<br>• DSPM {Tier} Structured/Unstructured = ceil(TB÷100)<br>• Consent = ceil(MAU÷100K)<br>• Robotic DSR = ceil(systems÷100)<br>Edit qty if needed. <em>Not a commercial quote.</em>' },
+      { keys: ['advanced', 'enterprise', 'enterprise plus', 'packaging', 'matrix', 'tier'],
+        a: '<strong>DSPM tiers:</strong><br>• <em>Advanced</em> — Command Center, Inventory, Scan/Classify, Insights, Workflow, Pods<br>• <em>Enterprise</em> — + cloud/AI posture, compliance, access intelligence, automation<br>• <em>Plus</em> — + remediation (quarantine, cloud/SaaS, access masking)' },
+      { keys: ['export', 'word', 'excel', 'pdf', 'print', 'download', 'save'],
+        a: '<strong>Export:</strong><br>• <em>Word</em> — .doc like the website (filled or blank)<br>• <em>Excel</em> — .csv for all fields + inventory + BoM<br>• <em>PDF</em> — Print → Save as PDF<br>Works before or after filling.' },
+      { keys: ['how', 'fill', 'use', 'help', 'start', 'guide', 'what is this'],
+        a: '<strong>How to use:</strong> 1) Customer &amp; stage 2) Regulations &amp; drivers 3) Infrastructure, systems, volumes, consent, deployment 4) Tick capabilities 5) Objectives 6) Notes 7) Generate BoM → Export Word/Excel/PDF. Ask me any field name for a short example.' },
+      { keys: ['rot', 'storage', 'redundant', 'orphan', 'quarantine'],
+        a: '<strong>ROT:</strong> Redundant, Obsolete or Trivial data still costing storage. Tick ROT under Data Intelligence and “Optimize Storage / Reduce ROT” under objectives if relevant. Remediation ROI needs DSPM Enterprise/Plus on the ROI tool.' }
     ];
 
     function toggleChat() {
@@ -589,11 +636,17 @@
       box.scrollTop = 1e9;
     }
     function answer(q) {
-      const low = q.toLowerCase();
+      const low = q.toLowerCase().replace(/\s+/g, ' ').trim();
+      let best = null, bestScore = 0;
       for (const k of KB) {
-        if (k.keys.some(x => low.includes(x))) return k.a;
+        let score = 0;
+        for (const x of k.keys) {
+          if (low.includes(x)) score += x.length; // longer key match ranks higher
+        }
+        if (score > bestScore) { bestScore = score; best = k.a; }
       }
-      return 'I can explain <strong>opportunity stages</strong>, <strong>TB sizing</strong>, <strong>consent MAU</strong>, <strong>ROT</strong>, <strong>DSPM vs Privacy</strong>, <strong>deployment (Hybrid/SaaS)</strong>, <strong>regulations</strong>, <strong>systems inventory</strong>, or <strong>PDF export</strong>. Try a quick button below or rephrase your question.';
+      if (best && bestScore > 0) return best;
+      return 'Paste or type any field/section name (e.g. <em>Infrastructure Overview</em>, <em>Data Systems</em>, <em>Consent MAU</em>, <em>BoM</em>). I reply with what to fill and a short example. Or use a quick button below.';
     }
     function sendChat() {
       const inp = document.getElementById('chatInput');
@@ -615,7 +668,7 @@
         b.onclick = () => sendQuick(t);
         qb.appendChild(b);
       });
-      addMsg('Hi — ask about any field in this workbook. I will explain options with examples (stages, TB sizing, consent MAU, ROT, DSPM, deployment, regulations, PDF export).', 'bot');
+      addMsg('Hi — ask about any section or field (or paste a label from the form). I will tell you what to enter and give a short example.', 'bot');
     })();
   </script>
 
