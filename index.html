@@ -183,10 +183,23 @@
         <h2>2. Business &amp; Compliance Requirements</h2>
         <label class="field">Applicable Regulations</label>
         <div class="chk-grid">
-          <label class="chk"><input type="checkbox" name="reg" value="GDPR" /> GDPR</label>
-          <label class="chk"><input type="checkbox" name="reg" value="KSA PDPL" /> KSA PDPL</label>
-          <label class="chk"><input type="checkbox" name="reg" value="UAE PDPL" /> UAE PDPL</label>
-          </div>
+          <label class="chk"><input type="checkbox" name="reg" value="GDPR (EU)" /> 🇪🇺 GDPR (EU)</label>
+          <label class="chk"><input type="checkbox" name="reg" value="China PIPL" /> 🇨🇳 China PIPL</label>
+          <label class="chk"><input type="checkbox" name="reg" value="India DPDP" /> 🇮🇳 India DPDP</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Saudi PDPL" /> 🇸🇦 Saudi PDPL</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Brazil LGPD" /> 🇧🇷 Brazil LGPD</label>
+          <label class="chk"><input type="checkbox" name="reg" value="California CPRA/CCPA" /> 🇺🇸 CPRA/CCPA</label>
+          <label class="chk"><input type="checkbox" name="reg" value="UK GDPR" /> 🇬🇧 UK GDPR</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Singapore PDPA" /> 🇸🇬 Singapore PDPA</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Korea PIPA" /> 🇰🇷 Korea PIPA</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Japan APPI" /> 🇯🇵 Japan APPI</label>
+          <label class="chk"><input type="checkbox" name="reg" value="UAE PDPL" /> 🇦🇪 UAE PDPL</label>
+          <label class="chk"><input type="checkbox" name="reg" value="South Africa POPIA" /> 🇿🇦 South Africa POPIA</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Thailand PDPA" /> 🇹🇭 Thailand PDPA</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Qatar PDPPL" /> 🇶🇦 Qatar PDPPL</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Bahrain PDPL" /> 🇧🇭 Bahrain PDPL</label>
+          <label class="chk"><input type="checkbox" name="reg" value="Turkey KVKK" /> 🇹🇷 Turkey KVKK</label>
+        </div>
         <div class="grid-2">
           <div><label class="field">Other regulations</label><input type="text" id="regOther" /></div>
         </div>
@@ -554,8 +567,8 @@
         a: '<strong>Deployment option (pick one):</strong><br>• <em>AWS Hybrid</em> — Securiti console in AWS; collectors/pods/sensors/gateway in the customer data center (common for regulated / on-prem data)<br>• <em>Fully Cloud (SaaS)</em> — no on-prem pods<br>Also tick On-Prem / Cloud / Hybrid under infrastructure and Azure/AWS/GCP/OCI as used.' },
       { keys: ['pdf', 'export', 'print', 'save'],
         a: '<strong>Export options:</strong><br>• <em>Word</em> — downloads a .doc file (opens in Microsoft Word) with all filled fields and BoM<br>• <em>Excel</em> — downloads a .csv file (opens in Excel) with sections, inventory and BoM<br>• <em>PDF</em> — use browser Print → Save as PDF<br>Works for empty template or after filling.' },
-      { keys: ['regulation', 'gdpr', 'pdpl', 'dora', 'hipaa', 'compliance'],
-        a: '<strong>Regulations — common options:</strong> GDPR (EU), KSA PDPL, UAE PDPL, NDMO, PCI DSS, ISO 27001, DORA (EU financial), HIPAA (health). Add others in “Other regulations”. Example: EU bank → GDPR + DORA + ISO 27001.' },
+      { keys: ['regulation', 'gdpr', 'pdpl', 'pipl', 'dpdp', 'lgpd', 'ccpa', 'cpra', 'pdpa', 'popia', 'kvkk', 'appi', 'pipa', 'compliance'],
+        a: '<strong>Regulations:</strong> 🇪🇺 GDPR (EU), 🇨🇳 China PIPL, 🇮🇳 India DPDP, 🇸🇦 Saudi PDPL, 🇧🇷 Brazil LGPD, 🇺🇸 CPRA/CCPA, 🇬🇧 UK GDPR, 🇸🇬 Singapore PDPA, 🇰🇷 Korea PIPA, 🇯🇵 Japan APPI, 🇦🇪 UAE PDPL, 🇿🇦 South Africa POPIA, 🇹🇭 Thailand PDPA, 🇶🇦 Qatar PDPPL, 🇧🇭 Bahrain PDPL, 🇹🇷 Turkey KVKK. Add others in “Other regulations”.' },
       { keys: ['system', 'inventory', 'oracle', 'sharepoint', 'snowflake'],
         a: '<strong>Data systems inventory:</strong> List systems to assess — name, OEM, version, on-prem/cloud/hybrid, type (DB, file, SaaS, storage, lake), structured/unstructured, volume TB, scan Yes/No. Examples: Oracle 19c on-prem 40 TB structured; SharePoint Online 15 TB unstructured; Snowflake on AWS 25 TB.' },
       { keys: ['objective', 'outcome', 'driver', 'why'],
@@ -917,6 +930,17 @@ function collectData() {
     bom
   };
 }
+
+  function chkRegs(list) {
+    const items = ['🇪🇺 GDPR (EU)', '🇨🇳 China PIPL', '🇮🇳 India DPDP', '🇸🇦 Saudi PDPL', '🇧🇷 Brazil LGPD', '🇺🇸 CPRA/CCPA', '🇬🇧 UK GDPR', '🇸🇬 Singapore PDPA', '🇰🇷 Korea PIPA', '🇯🇵 Japan APPI', '🇦🇪 UAE PDPL', '🇿🇦 South Africa POPIA', '🇹🇭 Thailand PDPA', '🇶🇦 Qatar PDPPL', '🇧🇭 Bahrain PDPL', '🇹🇷 Turkey KVKK'];
+    const vals = ['GDPR (EU)', 'China PIPL', 'India DPDP', 'Saudi PDPL', 'Brazil LGPD', 'California CPRA/CCPA', 'UK GDPR', 'Singapore PDPA', 'Korea PIPA', 'Japan APPI', 'UAE PDPL', 'South Africa POPIA', 'Thailand PDPA', 'Qatar PDPPL', 'Bahrain PDPL', 'Turkey KVKK'];
+    return items.map((lab, i) => {
+      const v = vals[i];
+      const on = list && list.includes(v);
+      return (on ? '☑ ' : '☐ ') + lab;
+    }).join('&nbsp;&nbsp;&nbsp;');
+  }
+
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -1093,7 +1117,7 @@ function exportWord() {
 <div class="card">
   <h2>2. Business &amp; Compliance Requirements</h2>
   <div class="field-label">Applicable Regulations</div>
-  <div class="chk">${chkMany(d.reg, ['GDPR','KSA PDPL','UAE PDPL'])}</div>
+  <div class="chk">${chkRegs(d.reg)}</div>
   <div class="field-label" style="margin-top:8px">Other regulations</div>
   <div class="in">${esc(d.regOther)}</div>
   <div class="field-label" style="margin-top:8px">Business Drivers — Why Securiti now?</div>
